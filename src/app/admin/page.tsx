@@ -17,6 +17,19 @@ export default function AdminPage() {
   const [qrImageFile, setQrImageFile] = useState<File | null>(null);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const storedSettings = sessionStorage.getItem('bsclub-admin-settings');
+    if (!storedSettings) return;
+
+    try {
+      const parsed = JSON.parse(storedSettings);
+      setLimits(prev => ({ ...prev, ...parsed }));
+    } catch {
+      // ignore invalid stored settings
+    }
+  }, []);
+
+  useEffect(() => {
     const savedToken = sessionStorage.getItem('adminToken');
     if (savedToken) {
       setPassword(savedToken);
@@ -52,12 +65,14 @@ export default function AdminPage() {
 
       setRegistrations(regData);
       setStatus(statData);
-      setLimits({
+      const nextLimits = {
         maxMale: statData.settings.maxMale,
         maxFemale: statData.settings.maxFemale,
         registrationOpen: statData.settings.registrationOpen,
         qrCodeImageUrl: statData.settings.qrCodeImageUrl || ''
-      });
+      };
+      setLimits(nextLimits);
+      sessionStorage.setItem('bsclub-admin-settings', JSON.stringify(nextLimits));
     } catch (err) {
       console.error(err);
     } finally {
@@ -102,13 +117,22 @@ export default function AdminPage() {
         formData.append('qrCodeImage', qrImageFile);
       }
 
-      await fetch('/api/admin/settings', {
+      const res = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 
           'Authorization': `Bearer ${password}`
         },
         body: formData
       });
+      const savedSettings = await res.json();
+      const nextLimits = {
+        maxMale: savedSettings.maxMale ?? limits.maxMale,
+        maxFemale: savedSettings.maxFemale ?? limits.maxFemale,
+        registrationOpen: savedSettings.registrationOpen ?? limits.registrationOpen,
+        qrCodeImageUrl: savedSettings.qrCodeImageUrl ?? limits.qrCodeImageUrl
+      };
+      setLimits(nextLimits);
+      sessionStorage.setItem('bsclub-admin-settings', JSON.stringify(nextLimits));
       setQrImageFile(null);
       fetchData();
       alert('Settings updated successfully');

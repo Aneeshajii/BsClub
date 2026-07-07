@@ -48,11 +48,22 @@ export async function PUT(req: NextRequest) {
         qrCodeImageUrl = await saveUploadedFile(qrCodeImage);
       }
     } else {
-      const body = await req.json();
-      maxMale = typeof body.maxMale === 'number' ? body.maxMale : undefined;
-      maxFemale = typeof body.maxFemale === 'number' ? body.maxFemale : undefined;
-      registrationOpen = typeof body.registrationOpen === 'boolean' ? body.registrationOpen : undefined;
-      qrCodeImageUrl = typeof body.qrCodeImageUrl === 'string' ? body.qrCodeImageUrl : undefined;
+      const rawBody = await req.text();
+      if (rawBody) {
+        try {
+          const body = JSON.parse(rawBody);
+          maxMale = typeof body.maxMale === 'number' ? body.maxMale : undefined;
+          maxFemale = typeof body.maxFemale === 'number' ? body.maxFemale : undefined;
+          registrationOpen = typeof body.registrationOpen === 'boolean' ? body.registrationOpen : undefined;
+          qrCodeImageUrl = typeof body.qrCodeImageUrl === 'string' ? body.qrCodeImageUrl : undefined;
+        } catch {
+          const params = new URLSearchParams(rawBody);
+          maxMale = params.has('maxMale') ? Number(params.get('maxMale') ?? '') : undefined;
+          maxFemale = params.has('maxFemale') ? Number(params.get('maxFemale') ?? '') : undefined;
+          registrationOpen = params.has('registrationOpen') ? params.get('registrationOpen') === 'true' : undefined;
+          qrCodeImageUrl = params.get('qrCodeImageUrl') || undefined;
+        }
+      }
     }
 
     const settings = await prisma.settings.upsert({

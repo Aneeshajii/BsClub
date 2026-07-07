@@ -16,6 +16,14 @@ export default function RegistrationPage() {
     gender: '',
     age: ''
   });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const storedQr = sessionStorage.getItem('bsclub-public-qr');
+    if (storedQr) {
+      setQrCodeImageUrl(storedQr);
+    }
+  }, []);
   const [screenshot, setScreenshot] = useState<File | null>(null);
 
   useEffect(() => {
@@ -27,7 +35,11 @@ export default function RegistrationPage() {
       const res = await fetch('/api/status');
       const data = await res.json();
       setStatus(data);
-      setQrCodeImageUrl(data?.settings?.qrCodeImageUrl || '');
+      const nextQrCodeImageUrl = data?.settings?.qrCodeImageUrl || '';
+      setQrCodeImageUrl(nextQrCodeImageUrl);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('bsclub-public-qr', nextQrCodeImageUrl);
+      }
     } catch (err) {
       console.error('Failed to fetch status', err);
     } finally {
@@ -155,6 +167,20 @@ export default function RegistrationPage() {
                 value={formData.phone} 
                 onChange={handleChange}
                 disabled={submitting}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Age</label>
+              <input
+                type="number"
+                name="age"
+                className="form-control"
+                placeholder="Enter your age"
+                value={formData.age}
+                onChange={handleChange}
+                disabled={submitting}
+                min={1}
               />
             </div>
 
