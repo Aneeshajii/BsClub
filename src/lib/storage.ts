@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { put } from '@vercel/blob';
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import os from 'os';
@@ -6,60 +6,51 @@ import path from 'path';
 
 const provider = process.env.STORAGE_PROVIDER || 'local';
 
-async function uploadToS3(buffer: Buffer, key: string, contentType?: string) {
-  const region = process.env.AWS_REGION;
-  const bucket = process.env.S3_BUCKET;
-  const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-
-  if (!region || !bucket || !accessKeyId || !secretAccessKey) {
-    throw new Error('S3 environment variables are not configured');
-  }
-
-  const client = new S3Client({
-    region,
-    credentials: { accessKeyId, secretAccessKey }
+async function uploadToVercelBlob(buffer: Buffer, key: string, contentType?: string) {
+  const { url } = await put(key, buffer, {
+    access: 'public',
+    contentType: contentType || 'application/octet-stream',
   });
-
-  const cmd = new PutObjectCommand({
-    Bucket: bucket,
-    Key: key,
-    Body: buffer,
-    ContentType: contentType || 'application/octet-stream'
-  });
-
-  await client.send(cmd);
-
-  return `https://${bucket}.s3.${region}.amazonaws.com/${encodeURIComponent(key)}`;
+  return url;
 }
 
 async function uploadLocally(buffer: Buffer, key: string) {
-  const uploadDir = path.join(os.tmpdir(), 'bsclub-uploads');
+  // Save to public/uploads so Next.js can serve it statically
+  const uploadDir = path.join(process.cwd(), 'public', 'uploads');
   await mkdir(uploadDir, { recursive: true });
   const filePath = path.join(uploadDir, key);
   await writeFile(filePath, buffer);
-  return `/api/uploads/${encodeURIComponent(key)}`;
+  
+  // Return a URL that Next.js automatically serves from the public directory
+  return `/uploads/${encodeURIComponent(key)}`;
 }
 
 export async function upload(buffer: Buffer, key: string, contentType?: string) {
-  if (provider === 's3') {
-    return uploadToS3(buffer, key, contentType);
+  if (provider === 'vercel-blob' || process.env.BLOB_READ_WRITE_TOKEN) {
+    return uploadToVercelBlob(buffer, key, contentType);
   }
 
   return uploadLocally(buffer, key);
 }
 
 export async function readFromStorage(key: string) {
-  if (provider === 's3') {
-    throw new Error('S3 read-through is not implemented in this fast path');
+  if (provider === 'vercel-blob' || process.env.BLOB_READ_WRITE_TOKEN) {
+    throw new Error('Vercel Blob read-through is not implemented in this fast path');
   }
 
-  const filePath = path.join(os.tmpdir(), 'bsclub-uploads', key);
-  if (!existsSync(filePath)) {
-    throw new Error('File not found');
+  // First, check the reliable public uploads directory
+  const publicFilePath = path.join(process.cwd(), 'public', 'uploads', key);
+  if (existsSync(publicFilePath)) {
+    return readFile(publicFilePath);
   }
 
-  return readFile(filePath);
+  // Fallback to the temporary directory just in case it was saved there previously
+  const tmpFilePath = path.join(os.tmpdir(), 'bsclub-uploads', key);
+  if (existsSync(tmpFilePath)) {
+    return readFile(tmpFilePath);
+  }
+
+  throw new Error('File not found');
 }
 
 export default { upload, readFromStorage };
