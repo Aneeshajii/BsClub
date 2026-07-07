@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function AdminPage() {
   const [password, setPassword] = useState('');
@@ -150,21 +151,35 @@ export default function AdminPage() {
     }
   };
 
-  const exportToExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(registrations.map(r => ({
-      'Registration ID': r.registrationId,
-      'Full Name': r.name,
-      'Phone Number': r.phone,
-      'Gender': r.gender,
-      'Age': r.age || '',
-      'Registered Before': r.registeredBefore || '',
-      'Level': r.level || '',
-      'Date & Time': new Date(r.createdAt).toLocaleString(),
-      'Screenshot URL': r.paymentScreenshotUrl
-    })));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Registrations");
-    XLSX.writeFile(wb, "Bs_Club_Registrations.xlsx");
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.text("B's Club Registrations", 14, 15);
+    
+    const tableColumn = ["ID", "Name", "Phone", "Gender", "Age", "Registered Before", "Level", "Date"];
+    const tableRows: any[] = [];
+    
+    registrations.forEach(r => {
+      const rowData = [
+        r.registrationId,
+        r.name,
+        r.phone,
+        r.gender,
+        r.age || '',
+        r.registeredBefore || '',
+        r.level || '',
+        new Date(r.createdAt).toLocaleString()
+      ];
+      tableRows.push(rowData);
+    });
+    
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+    });
+    
+    doc.save("Bs_Club_Registrations.pdf");
   };
 
   if (!authenticated) {
@@ -312,7 +327,7 @@ export default function AdminPage() {
           <div style={{ flex: '3 1 600px' }}>
             <div className="admin-controls">
               <h3 style={{ flex: 1 }}>Registrations Data</h3>
-              <button className="btn" onClick={exportToExcel} style={{ width: 'auto', padding: '0.8rem 1.5rem', fontSize: '1rem' }}>Export to Excel</button>
+              <button className="btn" onClick={exportToPDF} style={{ width: 'auto', padding: '0.8rem 1.5rem', fontSize: '1rem' }}>Export to PDF</button>
             </div>
             
             <div style={{ overflowX: 'auto' }}>
