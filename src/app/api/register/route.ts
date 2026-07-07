@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { mkdir, writeFile } from 'fs/promises';
-import path from 'path';
+import { upload } from '@/lib/storage';
 
 export async function POST(req: NextRequest) {
   try {
@@ -52,19 +51,13 @@ export async function POST(req: NextRequest) {
         throw new Error('This phone number has already been registered.');
       }
 
-      // 3. Save the file
+      // 3. Save the file to configured storage (S3)
       const bytes = await screenshot.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      
-      const ext = path.extname(screenshot.name) || '.jpg';
+      const ext = (screenshot.name && screenshot.name.includes('.')) ? '.' + screenshot.name.split('.').pop() : '.jpg';
       const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`;
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-      await mkdir(uploadDir, { recursive: true });
-      const filepath = path.join(uploadDir, filename);
-      
-      await writeFile(filepath, buffer);
-      
-      const fileUrl = `/uploads/${filename}`;
+
+      const fileUrl = await upload(buffer, filename, screenshot.type || 'image/jpeg');
 
       // 4. Create the registration record
       // We will generate a temp ID first, then update it to BSC000X
