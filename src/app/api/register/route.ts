@@ -10,6 +10,8 @@ export async function POST(req: NextRequest) {
     const name = formData.get('name') as string;
     const phone = formData.get('phone') as string;
     const gender = formData.get('gender') as string;
+    const ageValue = formData.get('age');
+    const age = typeof ageValue === 'string' ? Number(ageValue) : undefined;
     const screenshot = formData.get('screenshot') as File;
 
     if (!name || !phone || !gender || !screenshot) {
@@ -71,6 +73,7 @@ export async function POST(req: NextRequest) {
           name,
           phone,
           gender,
+          age: typeof age === 'number' && !Number.isNaN(age) ? age : undefined,
           paymentScreenshotUrl: fileUrl,
           registrationId: tempId
         }

@@ -13,6 +13,7 @@ model Registration {
   name                 String
   phone                String   @unique
   gender               String   // "Male" or "Female"
+  age                  Int?
   paymentScreenshotUrl String
   createdAt            DateTime @default(now())
 }

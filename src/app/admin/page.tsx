@@ -123,6 +123,7 @@ export default function AdminPage() {
       'Full Name': r.name,
       'Phone Number': r.phone,
       'Gender': r.gender,
+      'Age': r.age || '',
       'Date & Time': new Date(r.createdAt).toLocaleString(),
       'Screenshot URL': r.paymentScreenshotUrl
     })));
@@ -248,6 +249,7 @@ export default function AdminPage() {
                   <tr>
                     <th>ID</th>
                     <th>Name</th>
+                    <th>Age</th>
                     <th>Phone</th>
                     <th>Gender</th>
                     <th>Date</th>
@@ -263,6 +265,7 @@ export default function AdminPage() {
                       <tr key={reg.id}>
                         <td style={{ fontWeight: 700 }}>{reg.registrationId}</td>
                         <td>{reg.name}</td>
+                          <td>{reg.age ?? '-'}</td>
                         <td>{reg.phone}</td>
                         <td><span className={`badge ${reg.gender === 'Male' ? 'badge-male' : 'badge-female'}`}>{reg.gender}</span></td>
                         <td>{new Date(reg.createdAt).toLocaleDateString()} {new Date(reg.createdAt).toLocaleTimeString()}</td>

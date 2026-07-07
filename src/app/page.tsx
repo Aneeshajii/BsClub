@@ -13,7 +13,8 @@ export default function RegistrationPage() {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    gender: ''
+    gender: '',
+    age: ''
   });
   const [screenshot, setScreenshot] = useState<File | null>(null);
 
@@ -58,6 +59,10 @@ export default function RegistrationPage() {
       setError('Please fill all fields and upload the payment screenshot.');
       return;
     }
+    if (!formData.age || Number.isNaN(Number(formData.age))) {
+      setError('Please provide a valid age.');
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -65,6 +70,7 @@ export default function RegistrationPage() {
       form.append('name', formData.name);
       form.append('phone', formData.phone);
       form.append('gender', formData.gender);
+      form.append('age', formData.age);
       form.append('screenshot', screenshot);
 
       const res = await fetch('/api/register', {
