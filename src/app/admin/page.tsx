@@ -11,9 +11,10 @@ export default function AdminPage() {
   const [status, setStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
-  const [limits, setLimits] = useState({ maxMale: 29, maxFemale: 29, registrationOpen: true });
+  const [limits, setLimits] = useState({ maxMale: 29, maxFemale: 29, registrationOpen: true, qrCodeImageUrl: '' });
   
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
+  const [qrImageFile, setQrImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     const savedToken = sessionStorage.getItem('adminToken');
@@ -54,7 +55,8 @@ export default function AdminPage() {
       setLimits({
         maxMale: statData.settings.maxMale,
         maxFemale: statData.settings.maxFemale,
-        registrationOpen: statData.settings.registrationOpen
+        registrationOpen: statData.settings.registrationOpen,
+        qrCodeImageUrl: statData.settings.qrCodeImageUrl || ''
       });
     } catch (err) {
       console.error(err);
@@ -92,14 +94,22 @@ export default function AdminPage() {
   const handleUpdateSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const formData = new FormData();
+      formData.append('maxMale', limits.maxMale.toString());
+      formData.append('maxFemale', limits.maxFemale.toString());
+      formData.append('registrationOpen', limits.registrationOpen.toString());
+      if (qrImageFile) {
+        formData.append('qrCodeImage', qrImageFile);
+      }
+
       await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 
-          'Authorization': `Bearer ${password}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${password}`
         },
-        body: JSON.stringify(limits)
+        body: formData
       });
+      setQrImageFile(null);
       fetchData();
       alert('Settings updated successfully');
     } catch (err) {
@@ -207,6 +217,20 @@ export default function AdminPage() {
                   style={{ width: '20px', height: '20px' }}
                 />
                 <label htmlFor="regOpen" style={{ margin: 0 }}>Registration Form Open</label>
+              </div>
+              <div className="form-group">
+                <label>Update QR Code Image</label>
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  className="form-control"
+                  onChange={(e) => setQrImageFile(e.target.files?.[0] || null)}
+                />
+                {limits.qrCodeImageUrl ? (
+                  <img src={limits.qrCodeImageUrl} alt="Current QR Code" style={{ width: '140px', marginTop: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                ) : (
+                  <div style={{ marginTop: '0.75rem', color: '#718096' }}>No QR code uploaded yet.</div>
+                )}
               </div>
               <button className="btn" type="submit" style={{ padding: '0.8rem', fontSize: '1rem' }}>Save Settings</button>
             </form>

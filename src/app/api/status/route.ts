@@ -27,7 +27,10 @@ export async function GET() {
     const isOpen = settings.registrationOpen && !isRegistrationFull;
 
     return NextResponse.json({
-      settings,
+      settings: {
+        ...settings,
+        qrCodeImageUrl: settings.qrCodeImageUrl || ''
+      },
       counts: {
         male: maleCount,
         female: femaleCount,

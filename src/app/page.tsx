@@ -8,6 +8,7 @@ export default function RegistrationPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [successData, setSuccessData] = useState<any>(null);
+  const [qrCodeImageUrl, setQrCodeImageUrl] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -25,6 +26,7 @@ export default function RegistrationPage() {
       const res = await fetch('/api/status');
       const data = await res.json();
       setStatus(data);
+      setQrCodeImageUrl(data?.settings?.qrCodeImageUrl || '');
     } catch (err) {
       console.error('Failed to fetch status', err);
     } finally {
@@ -174,10 +176,13 @@ export default function RegistrationPage() {
 
             <div className="qr-section">
               <h3 style={{ marginBottom: '1rem' }}>Scan to Pay</h3>
-              {/* Placeholder for UPI QR Code */}
-              <div style={{ width: '200px', height: '200px', background: '#e2e8f0', margin: '0 auto 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '10px' }}>
-                <span style={{ color: '#718096', fontWeight: 700 }}>QR Code Placeholder</span>
-              </div>
+              {qrCodeImageUrl ? (
+                <img src={qrCodeImageUrl} alt="Payment QR Code" style={{ width: '200px', height: '200px', objectFit: 'contain', margin: '0 auto 1rem', borderRadius: '10px', background: '#fff', border: '1px solid #e2e8f0' }} />
+              ) : (
+                <div style={{ width: '200px', height: '200px', background: '#e2e8f0', margin: '0 auto 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '10px' }}>
+                  <span style={{ color: '#718096', fontWeight: 700 }}>QR Code Placeholder</span>
+                </div>
+              )}
               <p style={{ fontSize: '0.9rem', color: '#4a5568' }}>Please complete the payment and upload the screenshot below.</p>
             </div>
 

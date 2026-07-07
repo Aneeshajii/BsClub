@@ -22,4 +22,5 @@ model Settings {
   maxMale          Int     @default(29)
   maxFemale        Int     @default(29)
   registrationOpen Boolean @default(true)
+  qrCodeImageUrl   String  @default("")
 }
