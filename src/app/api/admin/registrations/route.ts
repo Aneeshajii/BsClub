@@ -29,9 +29,9 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: 'desc' }
     });
 
-    return NextResponse.json(registrations);
+    return NextResponse.json(registrations ?? []);
   } catch (error) {
     console.error('Error fetching registrations:', error);
-    return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
+    return NextResponse.json([]);
   }
 }

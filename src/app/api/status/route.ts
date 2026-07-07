@@ -9,7 +9,7 @@ export async function GET() {
 
     if (!settings) {
       settings = await prisma.settings.create({
-        data: { id: 1, maxMale: 29, maxFemale: 29, registrationOpen: true }
+        data: { id: 1, maxMale: 29, maxFemale: 29, registrationOpen: true, qrCodeImageUrl: '' }
       });
     }
 
@@ -21,14 +21,20 @@ export async function GET() {
       where: { gender: 'Female' }
     });
 
-    const isMaleFull = maleCount >= settings.maxMale;
-    const isFemaleFull = femaleCount >= settings.maxFemale;
+    const maxMale = settings.maxMale ?? 29;
+    const maxFemale = settings.maxFemale ?? 29;
+    const registrationOpen = settings.registrationOpen ?? true;
+    const isMaleFull = maleCount >= maxMale;
+    const isFemaleFull = femaleCount >= maxFemale;
     const isRegistrationFull = isMaleFull && isFemaleFull;
-    const isOpen = settings.registrationOpen && !isRegistrationFull;
+    const isOpen = registrationOpen && !isRegistrationFull;
 
     return NextResponse.json({
       settings: {
         ...settings,
+        maxMale,
+        maxFemale,
+        registrationOpen,
         qrCodeImageUrl: settings.qrCodeImageUrl || ''
       },
       counts: {
@@ -45,6 +51,10 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Error fetching status:', error);
-    return NextResponse.json({ error: 'Failed to fetch status' }, { status: 500 });
+    return NextResponse.json({
+      settings: { id: 1, maxMale: 29, maxFemale: 29, registrationOpen: true, qrCodeImageUrl: '' },
+      counts: { male: 0, female: 0, total: 0 },
+      status: { isMaleFull: false, isFemaleFull: false, isRegistrationFull: false, isOpen: true }
+    });
   }
 }
