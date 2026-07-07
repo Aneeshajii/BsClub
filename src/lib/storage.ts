@@ -4,6 +4,7 @@ import { existsSync } from 'fs';
 import os from 'os';
 import path from 'path';
 
+// Force redeployment to inject Vercel Blob token
 const provider = process.env.STORAGE_PROVIDER || 'local';
 
 async function uploadToVercelBlob(buffer: Buffer, key: string, contentType?: string) {
