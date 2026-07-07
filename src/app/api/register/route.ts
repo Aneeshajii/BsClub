@@ -21,10 +21,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid gender' }, { status: 400 });
     }
 
-    // Wrap in a transaction to prevent race conditions for the exact seat limits
+    // 1. Fast-fail check before doing any expensive uploads
+    const existing = await prisma.registration.findUnique({ where: { phone } });
+    if (existing) {
+      return NextResponse.json({ error: 'This phone number has already been registered.' }, { status: 400 });
+    }
+
+    // 2. Save the file to configured storage (S3 or Local) OUTSIDE the transaction
+    // This prevents exhausting the database connection pool while waiting for network I/O
+    const bytes = await screenshot.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const ext = screenshot.name && screenshot.name.includes('.') ? `.${screenshot.name.split('.').pop()}` : '.jpg';
+    const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`;
+    const fileUrl = await upload(buffer, filename, screenshot.type || 'image/jpeg');
+
+    // 3. Start database transaction for registration limits and final insert
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Fetch settings and current counts
-      let settings = await tx.settings.findUnique({ where: { id: 1 } });
+      // Lock the Settings row to serialize concurrent transactions and prevent seat race conditions
+      const settingsRaw = await tx.$queryRaw<any[]>`SELECT * FROM "Settings" WHERE id = 1 FOR UPDATE`;
+      let settings = settingsRaw?.[0];
+      
       if (!settings) {
         settings = await tx.settings.create({
           data: { id: 1, maxMale: 29, maxFemale: 29, registrationOpen: true }
@@ -45,22 +61,13 @@ export async function POST(req: NextRequest) {
         throw new Error('Female registrations are full.');
       }
 
-      // 2. Check duplicate phone
-      const existing = await tx.registration.findUnique({ where: { phone } });
-      if (existing) {
+      // Final check for phone just in case it was inserted during the upload gap
+      const concurrentExisting = await tx.registration.findUnique({ where: { phone } });
+      if (concurrentExisting) {
         throw new Error('This phone number has already been registered.');
       }
 
-      // 3. Save the file to configured storage (S3)
-      const bytes = await screenshot.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      const ext = (screenshot.name && screenshot.name.includes('.')) ? '.' + screenshot.name.split('.').pop() : '.jpg';
-      const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`;
-
-      const fileUrl = await upload(buffer, filename, screenshot.type || 'image/jpeg');
-
       // 4. Create the registration record
-      // We will generate a temp ID first, then update it to BSC000X
       const tempId = `TEMP-${Date.now()}-${Math.random()}`;
       
       const registration = await tx.registration.create({
