@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Registration {
+  id                   Int      @id @default(autoincrement())
+  registrationId       String   @unique // e.g. BSC0001
+  name                 String
+  phone                String   @unique
+  gender               String   // "Male" or "Female"
+  paymentScreenshotUrl String
+  createdAt            DateTime @default(now())
+}
+
+model Settings {
+  id               Int     @id @default(1)
+  maxMale          Int     @default(29)
+  maxFemale        Int     @default(29)
+  registrationOpen Boolean @default(true)
+}
