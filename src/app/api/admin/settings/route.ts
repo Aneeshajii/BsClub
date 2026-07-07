@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
+import { upload } from '@/lib/storage';
 
 function isAuthenticated(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
@@ -13,12 +13,8 @@ async function saveUploadedFile(file: File) {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
   const ext = path.extname(file.name) || '.png';
-  const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-  await mkdir(uploadDir, { recursive: true });
-  const filepath = path.join(uploadDir, filename);
-  await writeFile(filepath, buffer);
-  return `/uploads/${filename}`;
+  const filename = `qr-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+  return upload(buffer, filename, file.type || 'image/png');
 }
 
 export async function PUT(req: NextRequest) {
