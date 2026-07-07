@@ -19,6 +19,7 @@ npm run dev
 3. Add these environment variables:
    - `DATABASE_URL`
    - `ADMIN_PASSWORD`
-4. Deploy
+4. In Vercel, set the build command to `npm run vercel-build`
+5. Deploy
 
 > This project uses PostgreSQL for production hosting. For local development, use a local PostgreSQL instance or a hosted provider like Neon or Supabase.
