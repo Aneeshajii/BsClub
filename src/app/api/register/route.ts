@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     // 3. Start database transaction for registration limits and final insert
     const result = await prisma.$transaction(async (tx) => {
       // Lock the Settings row to serialize concurrent transactions and prevent seat race conditions
-      const settingsRaw = await tx.$queryRaw<any[]>`SELECT * FROM "Settings" WHERE id = 1 FOR UPDATE`;
+      const settingsRaw = await tx.$queryRaw<any[]>`SELECT id, "maxMale", "maxFemale", "registrationOpen" FROM "Settings" WHERE id = 1 FOR UPDATE`;
       let settings = settingsRaw?.[0];
       
       if (!settings) {
