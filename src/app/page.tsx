@@ -152,14 +152,14 @@ export default function RegistrationPage() {
   if (successData) {
     return (
       <div className="container animate-fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <div className="premium-card" style={{ textAlign: 'center', width: '100%' }}>
-          <h2 style={{ fontSize: '2.5rem', color: 'var(--success)', marginBottom: '1rem' }}>Registration Successful!</h2>
-          <p style={{ fontSize: '1.2rem', marginBottom: '2rem' }}>Thank you, {successData.name}.</p>
-          <div style={{ background: '#f7fafc', padding: '2rem', borderRadius: '10px', border: '2px dashed #cbd5e0' }}>
-            <p style={{ fontSize: '1rem', color: '#718096', marginBottom: '0.5rem', fontWeight: 700, textTransform: 'uppercase' }}>Your Registration ID</p>
-            <h1 style={{ fontSize: '3rem', fontWeight: 900, color: 'var(--text-dark)' }}>{successData.registrationId}</h1>
-          </div>
-          <p style={{ marginTop: '2rem', color: '#718096' }}>Please save this ID for your records.</p>
+        <div className="premium-card" style={{ textAlign: 'center', width: '100%', padding: '3rem 2rem' }}>
+          <h2 style={{ fontSize: '2.2rem', color: 'var(--text-dark)', marginBottom: '0.5rem' }}>🎉 Thank you, {successData.name}</h2>
+          <h1 style={{ fontSize: '3rem', color: 'var(--success)', marginBottom: '2rem' }}>You're In!</h1>
+          
+          <p style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: '#4a5568' }}>Welcome to The B's Club.</p>
+          <p style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: '#4a5568' }}>Your registration has been successfully confirmed.</p>
+          <p style={{ fontSize: '1.2rem', marginBottom: '2rem', color: '#4a5568', fontWeight: 700 }}>We'll see you on the court this weekend!</p>
+          <button onClick={() => window.location.reload()} className="btn" style={{ maxWidth: '200px', margin: '0 auto' }}>Back to Home</button>
         </div>
       </div>
     );
