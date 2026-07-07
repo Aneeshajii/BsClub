@@ -11,11 +11,11 @@ export async function POST(req: NextRequest) {
     const gender = formData.get('gender') as string;
     const ageValue = formData.get('age');
     const age = typeof ageValue === 'string' ? Number(ageValue) : undefined;
-    const district = formData.get('district') as string;
+    const registeredBefore = formData.get('registeredBefore') as string;
     const level = formData.get('level') as string;
     const screenshot = formData.get('screenshot') as File;
 
-    if (!name || !phone || !gender || !district || !level || !screenshot) {
+    if (!name || !phone || !gender || !registeredBefore || !level || !screenshot) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
     }
 
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
           name,
           phone,
           gender,
-          district,
+          registeredBefore,
           level,
           age: typeof age === 'number' && !Number.isNaN(age) ? age : undefined,
           paymentScreenshotUrl: fileUrl,

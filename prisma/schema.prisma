@@ -14,16 +14,19 @@ model Registration {
   phone                String   @unique
   gender               String   // "Male" or "Female"
   age                  Int?
-  district             String?
+  registeredBefore     String?
   level                String?
   paymentScreenshotUrl String
   createdAt            DateTime @default(now())
 }
 
 model Settings {
-  id               Int     @id @default(1)
-  maxMale          Int     @default(29)
-  maxFemale        Int     @default(29)
-  registrationOpen Boolean @default(true)
-  qrCodeImageUrl   String  @default("")
+  id                  Int     @id @default(1)
+  maxMale             Int     @default(29)
+  maxFemale           Int     @default(29)
+  registrationOpen    Boolean @default(true)
+  qrCodeImageUrl      String  @default("")
+  announcementTitle   String  @default("")
+  announcementMessage String  @default("")
+  announcementEnabled Boolean @default(false)
 }

@@ -11,7 +11,7 @@ export default function AdminPage() {
   const [status, setStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
-  const [limits, setLimits] = useState({ maxMale: 29, maxFemale: 29, registrationOpen: true, qrCodeImageUrl: '' });
+  const [limits, setLimits] = useState({ maxMale: 29, maxFemale: 29, registrationOpen: true, qrCodeImageUrl: '', announcementTitle: '', announcementMessage: '', announcementEnabled: false });
   
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
   const [qrImageFile, setQrImageFile] = useState<File | null>(null);
@@ -69,7 +69,10 @@ export default function AdminPage() {
         maxMale: statData.settings.maxMale,
         maxFemale: statData.settings.maxFemale,
         registrationOpen: statData.settings.registrationOpen,
-        qrCodeImageUrl: statData.settings.qrCodeImageUrl || ''
+        qrCodeImageUrl: statData.settings.qrCodeImageUrl || '',
+        announcementTitle: statData.settings.announcementTitle || '',
+        announcementMessage: statData.settings.announcementMessage || '',
+        announcementEnabled: statData.settings.announcementEnabled || false
       };
       setLimits(nextLimits);
       sessionStorage.setItem('bsclub-admin-settings', JSON.stringify(nextLimits));
@@ -113,6 +116,9 @@ export default function AdminPage() {
       formData.append('maxMale', limits.maxMale.toString());
       formData.append('maxFemale', limits.maxFemale.toString());
       formData.append('registrationOpen', limits.registrationOpen.toString());
+      formData.append('announcementTitle', limits.announcementTitle);
+      formData.append('announcementMessage', limits.announcementMessage);
+      formData.append('announcementEnabled', limits.announcementEnabled.toString());
       if (qrImageFile) {
         formData.append('qrCodeImage', qrImageFile);
       }
@@ -129,7 +135,10 @@ export default function AdminPage() {
         maxMale: savedSettings.maxMale ?? limits.maxMale,
         maxFemale: savedSettings.maxFemale ?? limits.maxFemale,
         registrationOpen: savedSettings.registrationOpen ?? limits.registrationOpen,
-        qrCodeImageUrl: savedSettings.qrCodeImageUrl ?? limits.qrCodeImageUrl
+        qrCodeImageUrl: savedSettings.qrCodeImageUrl ?? limits.qrCodeImageUrl,
+        announcementTitle: savedSettings.announcementTitle ?? limits.announcementTitle,
+        announcementMessage: savedSettings.announcementMessage ?? limits.announcementMessage,
+        announcementEnabled: savedSettings.announcementEnabled ?? limits.announcementEnabled
       };
       setLimits(nextLimits);
       sessionStorage.setItem('bsclub-admin-settings', JSON.stringify(nextLimits));
@@ -148,7 +157,7 @@ export default function AdminPage() {
       'Phone Number': r.phone,
       'Gender': r.gender,
       'Age': r.age || '',
-      'District': r.district || '',
+      'Registered Before': r.registeredBefore || '',
       'Level': r.level || '',
       'Date & Time': new Date(r.createdAt).toLocaleString(),
       'Screenshot URL': r.paymentScreenshotUrl
@@ -215,6 +224,43 @@ export default function AdminPage() {
         <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
           
           <div style={{ flex: '1 1 300px', backgroundColor: 'white', padding: '2rem', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', marginBottom: '2rem', alignSelf: 'flex-start' }}>
+            <h3 style={{ marginBottom: '1.5rem' }}>Announcement Manager</h3>
+            <form onSubmit={handleUpdateSettings}>
+              <div className="form-group">
+                <label>Announcement Title</label>
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  value={limits.announcementTitle}
+                  onChange={e => setLimits({...limits, announcementTitle: e.target.value})}
+                  placeholder="e.g. 📢 Important Update"
+                />
+              </div>
+              <div className="form-group">
+                <label>Announcement Message</label>
+                <textarea 
+                  className="form-control" 
+                  value={limits.announcementMessage}
+                  onChange={e => setLimits({...limits, announcementMessage: e.target.value})}
+                  rows={4}
+                  placeholder="Enter the announcement message here..."
+                />
+              </div>
+              <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <input 
+                  type="checkbox" 
+                  id="annEnabled"
+                  checked={limits.announcementEnabled}
+                  onChange={e => setLimits({...limits, announcementEnabled: e.target.checked})}
+                  style={{ width: '20px', height: '20px' }}
+                />
+                <label htmlFor="annEnabled" style={{ margin: 0 }}>Enable Announcement</label>
+              </div>
+              <button className="btn" type="submit" style={{ padding: '0.8rem', fontSize: '1rem' }}>Save Announcement</button>
+            </form>
+          </div>
+
+          <div style={{ flex: '1 1 300px', backgroundColor: 'white', padding: '2rem', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', marginBottom: '2rem', alignSelf: 'flex-start' }}>
             <h3 style={{ marginBottom: '1.5rem' }}>Settings</h3>
             <form onSubmit={handleUpdateSettings}>
               <div className="form-group">
@@ -276,7 +322,7 @@ export default function AdminPage() {
                     <th>ID</th>
                     <th>Name</th>
                     <th>Age</th>
-                    <th>District</th>
+                    <th>Registered Before</th>
                     <th>Level</th>
                     <th>Phone</th>
                     <th>Gender</th>
@@ -294,7 +340,7 @@ export default function AdminPage() {
                         <td style={{ fontWeight: 700 }}>{reg.registrationId}</td>
                         <td>{reg.name}</td>
                         <td>{reg.age ?? '-'}</td>
-                        <td>{reg.district ?? '-'}</td>
+                        <td>{reg.registeredBefore ?? '-'}</td>
                         <td>{reg.level ?? '-'}</td>
                         <td>{reg.phone}</td>
                         <td><span className={`badge ${reg.gender === 'Male' ? 'badge-male' : 'badge-female'}`}>{reg.gender}</span></td>

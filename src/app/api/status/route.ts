@@ -9,7 +9,7 @@ export async function GET() {
 
     if (!settings) {
       settings = await prisma.settings.create({
-        data: { id: 1, maxMale: 29, maxFemale: 29, registrationOpen: true, qrCodeImageUrl: '' }
+        data: { id: 1, maxMale: 29, maxFemale: 29, registrationOpen: true, qrCodeImageUrl: '', announcementTitle: '', announcementMessage: '', announcementEnabled: false }
       });
     }
 
@@ -52,7 +52,7 @@ export async function GET() {
   } catch (error) {
     console.error('Error fetching status:', error);
     return NextResponse.json({
-      settings: { id: 1, maxMale: 29, maxFemale: 29, registrationOpen: true, qrCodeImageUrl: '' },
+      settings: { id: 1, maxMale: 29, maxFemale: 29, registrationOpen: true, qrCodeImageUrl: '', announcementTitle: '', announcementMessage: '', announcementEnabled: false },
       counts: { male: 0, female: 0, total: 0 },
       status: { isMaleFull: false, isFemaleFull: false, isRegistrationFull: false, isOpen: true }
     });

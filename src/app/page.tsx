@@ -18,7 +18,7 @@ export default function RegistrationPage() {
     name: '',
     phone: '',
     age: '',
-    district: '',
+    registeredBefore: '',
     level: '',
     gender: ''
   });
@@ -98,7 +98,7 @@ export default function RegistrationPage() {
     e.preventDefault();
     setError('');
 
-    if (!formData.name || !formData.phone || !formData.gender || !formData.district || !formData.level || !screenshot) {
+    if (!formData.name || !formData.phone || !formData.gender || !formData.registeredBefore || !formData.level || !screenshot) {
       setError('Please fill all fields and upload the payment screenshot.');
       return;
     }
@@ -114,7 +114,7 @@ export default function RegistrationPage() {
       form.append('phone', formData.phone);
       form.append('gender', formData.gender);
       form.append('age', formData.age);
-      form.append('district', formData.district);
+      form.append('registeredBefore', formData.registeredBefore);
       form.append('level', formData.level);
       form.append('screenshot', screenshot);
 
@@ -169,6 +169,17 @@ export default function RegistrationPage() {
     <div className="container animate-fade-in">
       <h1 className="title-3d">the B'S <span className="dark">CLUB</span></h1>
       <h3 style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--text-light)', letterSpacing: '2px', fontWeight: 700 }}>FOR BADMINTON BUDDIES</h3>
+
+      {status?.settings?.announcementEnabled && status?.settings?.announcementTitle && (
+        <div className="premium-card animate-fade-in" style={{ marginBottom: '2rem', border: '1px solid rgba(159, 122, 234, 0.3)', borderLeft: '4px solid var(--primary)', padding: '1.5rem', backgroundColor: '#faf5ff', boxShadow: '0 4px 6px rgba(159, 122, 234, 0.1)' }}>
+          <h3 style={{ color: 'var(--primary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '1.2rem' }}>📢</span> {status.settings.announcementTitle}
+          </h3>
+          <p style={{ color: 'var(--text-dark)', whiteSpace: 'pre-line', lineHeight: 1.6, fontSize: '1.05rem' }}>
+            {status.settings.announcementMessage}
+          </p>
+        </div>
+      )}
 
       <div className="premium-card">
         {isClosed ? (
@@ -225,16 +236,23 @@ export default function RegistrationPage() {
             </div>
 
             <div className="form-group">
-              <label>District</label>
-              <input 
-                type="text" 
-                name="district" 
-                className="form-control" 
-                placeholder="Enter your district" 
-                value={formData.district} 
-                onChange={handleChange}
-                disabled={submitting}
-              />
+              <label>Have you registered with The B's Club before?</label>
+              <div className="radio-group">
+                <div 
+                  className={`radio-card ${formData.registeredBefore === 'Yes' ? 'selected' : ''}`}
+                  onClick={() => setFormData({ ...formData, registeredBefore: 'Yes' })}
+                  style={{ opacity: submitting ? 0.7 : 1, pointerEvents: submitting ? 'none' : 'auto' }}
+                >
+                  Yes
+                </div>
+                <div 
+                  className={`radio-card ${formData.registeredBefore === 'No' ? 'selected' : ''}`}
+                  onClick={() => setFormData({ ...formData, registeredBefore: 'No' })}
+                  style={{ opacity: submitting ? 0.7 : 1, pointerEvents: submitting ? 'none' : 'auto' }}
+                >
+                  No
+                </div>
+              </div>
             </div>
 
             <div className="form-group">
