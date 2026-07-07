@@ -239,15 +239,18 @@ export default function RegistrationPage() {
 
             <div className="form-group">
               <label>Level</label>
-              <input 
-                type="text" 
+              <select 
                 name="level" 
                 className="form-control" 
-                placeholder="Enter your playing level" 
                 value={formData.level} 
-                onChange={handleChange}
+                onChange={handleChange as any}
                 disabled={submitting}
-              />
+              >
+                <option value="" disabled>Select your playing level</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+              </select>
             </div>
 
             <div className="form-group">
