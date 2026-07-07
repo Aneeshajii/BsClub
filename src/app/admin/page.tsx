@@ -148,6 +148,8 @@ export default function AdminPage() {
       'Phone Number': r.phone,
       'Gender': r.gender,
       'Age': r.age || '',
+      'District': r.district || '',
+      'Level': r.level || '',
       'Date & Time': new Date(r.createdAt).toLocaleString(),
       'Screenshot URL': r.paymentScreenshotUrl
     })));
@@ -274,6 +276,8 @@ export default function AdminPage() {
                     <th>ID</th>
                     <th>Name</th>
                     <th>Age</th>
+                    <th>District</th>
+                    <th>Level</th>
                     <th>Phone</th>
                     <th>Gender</th>
                     <th>Date</th>
@@ -289,7 +293,9 @@ export default function AdminPage() {
                       <tr key={reg.id}>
                         <td style={{ fontWeight: 700 }}>{reg.registrationId}</td>
                         <td>{reg.name}</td>
-                          <td>{reg.age ?? '-'}</td>
+                        <td>{reg.age ?? '-'}</td>
+                        <td>{reg.district ?? '-'}</td>
+                        <td>{reg.level ?? '-'}</td>
                         <td>{reg.phone}</td>
                         <td><span className={`badge ${reg.gender === 'Male' ? 'badge-male' : 'badge-female'}`}>{reg.gender}</span></td>
                         <td>{new Date(reg.createdAt).toLocaleDateString()} {new Date(reg.createdAt).toLocaleTimeString()}</td>

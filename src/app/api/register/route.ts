@@ -11,9 +11,11 @@ export async function POST(req: NextRequest) {
     const gender = formData.get('gender') as string;
     const ageValue = formData.get('age');
     const age = typeof ageValue === 'string' ? Number(ageValue) : undefined;
+    const district = formData.get('district') as string;
+    const level = formData.get('level') as string;
     const screenshot = formData.get('screenshot') as File;
 
-    if (!name || !phone || !gender || !screenshot) {
+    if (!name || !phone || !gender || !district || !level || !screenshot) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
     }
 
@@ -31,8 +33,12 @@ export async function POST(req: NextRequest) {
     // This prevents exhausting the database connection pool while waiting for network I/O
     const bytes = await screenshot.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const ext = screenshot.name && screenshot.name.includes('.') ? `.${screenshot.name.split('.').pop()}` : '.jpg';
-    const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`;
+    
+    // Sanitize the filename to absolutely guarantee no weird characters break Vercel Blob
+    const mimeExt = screenshot.type ? screenshot.type.split('/')[1] : 'jpg';
+    const safeExt = mimeExt.replace(/[^a-zA-Z0-9]/g, '');
+    const filename = `reg-${Date.now()}-${Math.random().toString(36).substring(7)}.${safeExt || 'jpg'}`;
+
     const fileUrl = await upload(buffer, filename, screenshot.type || 'image/jpeg');
 
     // 3. Start database transaction for registration limits and final insert
@@ -75,6 +81,8 @@ export async function POST(req: NextRequest) {
           name,
           phone,
           gender,
+          district,
+          level,
           age: typeof age === 'number' && !Number.isNaN(age) ? age : undefined,
           paymentScreenshotUrl: fileUrl,
           registrationId: tempId
