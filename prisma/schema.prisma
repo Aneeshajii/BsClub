@@ -12,7 +12,8 @@ model Registration {
   registrationId       String   @unique // e.g. BSC0001
   name                 String
   phone                String   @unique
-  gender               String   // "Male" or "Female"
+  gender               String?  // "Male" or "Female" (Optional now)
+  venue                String?  // e.g. "Venue 1" or "Venue 2"
   age                  Int?
   registeredBefore     String?
   level                String?
@@ -24,6 +25,11 @@ model Settings {
   id                  Int     @id @default(1)
   maxMale             Int     @default(29)
   maxFemale           Int     @default(29)
+  registrationMode    String  @default("GENDER") // "GENDER" or "VENUE"
+  venue1Name          String  @default("Khel Academy, Kazhakuttom (10:00 to 12:00)")
+  venue1Max           Int     @default(29)
+  venue2Name          String  @default("Falcon Academy (10:30 to 12:30)")
+  venue2Max           Int     @default(29)
   registrationOpen    Boolean @default(true)
   qrCodeImageUrl      String  @default("")
   announcementTitle   String  @default("")

@@ -20,7 +20,8 @@ export default function RegistrationPage() {
     age: '',
     registeredBefore: '',
     level: '',
-    gender: ''
+    gender: '',
+    venue: ''
   });
 
   const [screenshot, setScreenshot] = useState<File | null>(null);
@@ -59,13 +60,19 @@ export default function RegistrationPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleGenderSelect = async (gender: string) => {
-    setFormData({ ...formData, gender });
+  const handleCategorySelect = async (val: string) => {
+    const isVenueMode = status?.settings?.registrationMode === 'VENUE';
+    if (isVenueMode) {
+      setFormData({ ...formData, venue: val, gender: '' });
+    } else {
+      setFormData({ ...formData, gender: val, venue: '' });
+    }
     setCheckingSlots(true);
     setError('');
     
     try {
-      const res = await fetch(`/api/check-slots?gender=${gender}`);
+      const query = isVenueMode ? `venue=${encodeURIComponent(val)}` : `gender=${val}`;
+      const res = await fetch(`/api/check-slots?${query}`);
       const data = await res.json();
       if (data.available) {
         setSlotAvailable(true);
@@ -98,7 +105,7 @@ export default function RegistrationPage() {
     e.preventDefault();
     setError('');
 
-    if (!formData.name || !formData.phone || !formData.gender || !formData.registeredBefore || !formData.level || !screenshot) {
+    if (!formData.name || !formData.phone || (!formData.gender && !formData.venue) || !formData.registeredBefore || !formData.level || !screenshot) {
       setError('Please fill all fields and upload the payment screenshot.');
       return;
     }
@@ -112,7 +119,8 @@ export default function RegistrationPage() {
       const form = new FormData();
       form.append('name', formData.name);
       form.append('phone', formData.phone);
-      form.append('gender', formData.gender);
+      if (formData.gender) form.append('gender', formData.gender);
+      if (formData.venue) form.append('venue', formData.venue);
       form.append('age', formData.age);
       form.append('registeredBefore', formData.registeredBefore);
       form.append('level', formData.level);
@@ -272,22 +280,43 @@ export default function RegistrationPage() {
             </div>
 
             <div className="form-group">
-              <label>Gender</label>
+              <label>{status?.settings?.registrationMode === 'VENUE' ? 'Venue / Time' : 'Gender'}</label>
               <div className="radio-group">
-                <div 
-                  className={`radio-card ${formData.gender === 'Male' ? 'selected' : ''}`}
-                  onClick={() => handleGenderSelect('Male')}
-                  style={{ pointerEvents: checkingSlots ? 'none' : 'auto', opacity: checkingSlots ? 0.7 : 1 }}
-                >
-                  Male
-                </div>
-                <div 
-                  className={`radio-card ${formData.gender === 'Female' ? 'selected' : ''}`}
-                  onClick={() => handleGenderSelect('Female')}
-                  style={{ pointerEvents: checkingSlots ? 'none' : 'auto', opacity: checkingSlots ? 0.7 : 1 }}
-                >
-                  Female
-                </div>
+                {status?.settings?.registrationMode === 'VENUE' ? (
+                  <>
+                    <div 
+                      className={`radio-card ${formData.venue === status?.settings?.venue1Name ? 'selected' : ''}`}
+                      onClick={() => handleCategorySelect(status?.settings?.venue1Name || 'Venue 1')}
+                      style={{ pointerEvents: checkingSlots ? 'none' : 'auto', opacity: checkingSlots ? 0.7 : 1, padding: '1rem', fontSize: '0.95rem' }}
+                    >
+                      {status?.settings?.venue1Name || 'Venue 1'}
+                    </div>
+                    <div 
+                      className={`radio-card ${formData.venue === status?.settings?.venue2Name ? 'selected' : ''}`}
+                      onClick={() => handleCategorySelect(status?.settings?.venue2Name || 'Venue 2')}
+                      style={{ pointerEvents: checkingSlots ? 'none' : 'auto', opacity: checkingSlots ? 0.7 : 1, padding: '1rem', fontSize: '0.95rem' }}
+                    >
+                      {status?.settings?.venue2Name || 'Venue 2'}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div 
+                      className={`radio-card ${formData.gender === 'Male' ? 'selected' : ''}`}
+                      onClick={() => handleCategorySelect('Male')}
+                      style={{ pointerEvents: checkingSlots ? 'none' : 'auto', opacity: checkingSlots ? 0.7 : 1 }}
+                    >
+                      Male
+                    </div>
+                    <div 
+                      className={`radio-card ${formData.gender === 'Female' ? 'selected' : ''}`}
+                      onClick={() => handleCategorySelect('Female')}
+                      style={{ pointerEvents: checkingSlots ? 'none' : 'auto', opacity: checkingSlots ? 0.7 : 1 }}
+                    >
+                      Female
+                    </div>
+                  </>
+                )}
               </div>
               {checkingSlots && <div style={{ textAlign: 'center', marginTop: '1rem', color: '#718096', fontStyle: 'italic' }}>Checking slot availability...</div>}
             </div>
