@@ -9,30 +9,41 @@ export async function GET() {
 
     if (!settings) {
       settings = await prisma.settings.create({
-        data: { id: 1, maxMale: 29, maxFemale: 29, registrationOpen: true, qrCodeImageUrl: '', announcementTitle: '', announcementMessage: '', announcementEnabled: false, registrationMode: 'GENDER', venue1Name: 'Khel Academy, Kazhakuttom (10:00 to 12:00)', venue1Max: 29, venue2Name: 'Falcon Academy (10:30 to 12:30)', venue2Max: 29 }
+        data: { id: 1, maxMale: 29, maxFemale: 29, registrationOpen: true, qrCodeImageUrl: '', announcementTitle: '', announcementMessage: '', announcementEnabled: false, registrationMode: 'GENDER', venue1Name: 'Khel Academy, Kazhakuttom (10:00 to 12:00)', venue1MaxMale: 15, venue1MaxFemale: 15, venue2Name: 'Falcon Academy (10:30 to 12:30)', venue2MaxMale: 15, venue2MaxFemale: 15 }
       });
     }
 
     const maleCount = await prisma.registration.count({ where: { gender: 'Male' } });
     const femaleCount = await prisma.registration.count({ where: { gender: 'Female' } });
-    const venue1Count = await prisma.registration.count({ where: { venue: settings.venue1Name } });
-    const venue2Count = await prisma.registration.count({ where: { venue: settings.venue2Name } });
+    const venue1MaleCount = await prisma.registration.count({ where: { venue: settings.venue1Name, gender: 'Male' } });
+    const venue1FemaleCount = await prisma.registration.count({ where: { venue: settings.venue1Name, gender: 'Female' } });
+    const venue2MaleCount = await prisma.registration.count({ where: { venue: settings.venue2Name, gender: 'Male' } });
+    const venue2FemaleCount = await prisma.registration.count({ where: { venue: settings.venue2Name, gender: 'Female' } });
     const totalCount = await prisma.registration.count();
 
     const maxMale = settings.maxMale ?? 29;
     const maxFemale = settings.maxFemale ?? 29;
-    const venue1Max = settings.venue1Max ?? 29;
-    const venue2Max = settings.venue2Max ?? 29;
+    
+    let isVenue1MaleFull = false;
+    let isVenue1FemaleFull = false;
+    let isVenue2MaleFull = false;
+    let isVenue2FemaleFull = false;
+
+    if (settings.registrationMode === 'VENUE_AND_GENDER') {
+      isVenue1MaleFull = venue1MaleCount >= (settings.venue1MaxMale ?? 15);
+      isVenue1FemaleFull = venue1FemaleCount >= (settings.venue1MaxFemale ?? 15);
+      isVenue2MaleFull = venue2MaleCount >= (settings.venue2MaxMale ?? 15);
+      isVenue2FemaleFull = venue2FemaleCount >= (settings.venue2MaxFemale ?? 15);
+    }
+
     const registrationOpen = settings.registrationOpen ?? true;
     
     const isMaleFull = maleCount >= maxMale;
     const isFemaleFull = femaleCount >= maxFemale;
-    const isVenue1Full = venue1Count >= venue1Max;
-    const isVenue2Full = venue2Count >= venue2Max;
 
     const isRegistrationFull = settings.registrationMode === 'GENDER' 
         ? (isMaleFull && isFemaleFull) 
-        : (isVenue1Full && isVenue2Full);
+        : (isVenue1MaleFull && isVenue1FemaleFull && isVenue2MaleFull && isVenue2FemaleFull);
         
     const isOpen = registrationOpen && !isRegistrationFull;
 
@@ -47,15 +58,19 @@ export async function GET() {
       counts: {
         male: maleCount,
         female: femaleCount,
-        venue1: venue1Count,
-        venue2: venue2Count,
+        venue1Male: venue1MaleCount,
+        venue1Female: venue1FemaleCount,
+        venue2Male: venue2MaleCount,
+        venue2Female: venue2FemaleCount,
         total: totalCount
       },
       status: {
         isMaleFull,
         isFemaleFull,
-        isVenue1Full,
-        isVenue2Full,
+        isVenue1MaleFull,
+        isVenue1FemaleFull,
+        isVenue2MaleFull,
+        isVenue2FemaleFull,
         isRegistrationFull,
         isOpen
       }

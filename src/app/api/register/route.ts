@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     // 3. Start database transaction for registration limits and final insert
     const result = await prisma.$transaction(async (tx) => {
       // Lock the Settings row to serialize concurrent transactions and prevent seat race conditions
-      const settingsRaw = await tx.$queryRaw<any[]>`SELECT id, "maxMale", "maxFemale", "registrationOpen", "registrationMode", "venue1Name", "venue1Max", "venue2Name", "venue2Max" FROM "Settings" WHERE id = 1 FOR UPDATE`;
+      const settingsRaw = await tx.$queryRaw<any[]>`SELECT id, "maxMale", "maxFemale", "registrationOpen", "registrationMode", "venue1Name", "venue1MaxMale", "venue1MaxFemale", "venue2Name", "venue2MaxMale", "venue2MaxFemale" FROM "Settings" WHERE id = 1 FOR UPDATE`;
       let settings = settingsRaw?.[0];
       
       if (!settings) {
@@ -67,18 +67,23 @@ export async function POST(req: NextRequest) {
         if (gender === 'Female' && femaleCount >= settings.maxFemale) {
           throw new Error('Female registrations are full.');
         }
-      } else {
+      } else if (settings.registrationMode === 'VENUE_AND_GENDER') {
         if (!venue || (venue !== settings.venue1Name && venue !== settings.venue2Name)) {
           throw new Error('Invalid venue selection');
         }
-        const venue1Count = await tx.registration.count({ where: { venue: settings.venue1Name } });
-        const venue2Count = await tx.registration.count({ where: { venue: settings.venue2Name } });
-
-        if (venue === settings.venue1Name && venue1Count >= settings.venue1Max) {
-          throw new Error(`${settings.venue1Name} registrations are full.`);
+        if (!gender || (gender !== 'Male' && gender !== 'Female')) {
+          throw new Error('Invalid gender selection');
         }
-        if (venue === settings.venue2Name && venue2Count >= settings.venue2Max) {
-          throw new Error(`${settings.venue2Name} registrations are full.`);
+        const venueCount = await tx.registration.count({ where: { venue, gender } });
+        let max = 15;
+        if (venue === settings.venue1Name) {
+          max = gender === 'Male' ? settings.venue1MaxMale : settings.venue1MaxFemale;
+        } else {
+          max = gender === 'Male' ? settings.venue2MaxMale : settings.venue2MaxFemale;
+        }
+
+        if (venueCount >= max) {
+          throw new Error(`${venue} (${gender}) registrations are full.`);
         }
       }
 
@@ -95,8 +100,8 @@ export async function POST(req: NextRequest) {
         data: {
           name,
           phone,
-          gender: settings.registrationMode === 'GENDER' ? gender : null,
-          venue: settings.registrationMode === 'VENUE' ? venue : null,
+          gender: gender || null,
+          venue: settings.registrationMode === 'GENDER' ? null : venue,
           registeredBefore,
           level,
           age: typeof age === 'number' && !Number.isNaN(age) ? age : undefined,

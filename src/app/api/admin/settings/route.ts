@@ -33,9 +33,11 @@ export async function PUT(req: NextRequest) {
     let announcementEnabled: boolean | undefined;
     let registrationMode: string | undefined;
     let venue1Name: string | undefined;
-    let venue1Max: number | undefined;
+    let venue1MaxMale: number | undefined;
+    let venue1MaxFemale: number | undefined;
     let venue2Name: string | undefined;
-    let venue2Max: number | undefined;
+    let venue2MaxMale: number | undefined;
+    let venue2MaxFemale: number | undefined;
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await req.formData();
@@ -48,9 +50,11 @@ export async function PUT(req: NextRequest) {
       const annEnabledVal = formData.get('announcementEnabled');
       const regModeVal = formData.get('registrationMode');
       const v1NameVal = formData.get('venue1Name');
-      const v1MaxVal = formData.get('venue1Max');
-      const v2NameVal = formData.get('venue2Name');
-      const v2MaxVal = formData.get('venue2Max');
+      const venue1MaxMaleVal = Number(formData.get('venue1MaxMale'));
+      const venue1MaxFemaleVal = Number(formData.get('venue1MaxFemale'));
+      const v2NameVal = formData.get('venue2Name') as string;
+      const venue2MaxMaleVal = Number(formData.get('venue2MaxMale'));
+      const venue2MaxFemaleVal = Number(formData.get('venue2MaxFemale'));
 
       maxMale = typeof maxMaleValue === 'string' ? Number(maxMaleValue) : undefined;
       maxFemale = typeof maxFemaleValue === 'string' ? Number(maxFemaleValue) : undefined;
@@ -60,9 +64,11 @@ export async function PUT(req: NextRequest) {
       announcementEnabled = typeof annEnabledVal === 'string' ? annEnabledVal === 'true' : undefined;
       registrationMode = typeof regModeVal === 'string' ? regModeVal : undefined;
       venue1Name = typeof v1NameVal === 'string' ? v1NameVal : undefined;
-      venue1Max = typeof v1MaxVal === 'string' ? Number(v1MaxVal) : undefined;
-      venue2Name = typeof v2NameVal === 'string' ? v2NameVal : undefined;
-      venue2Max = typeof v2MaxVal === 'string' ? Number(v2MaxVal) : undefined;
+      venue1MaxMale = !isNaN(venue1MaxMaleVal) ? venue1MaxMaleVal : undefined;
+      venue1MaxFemale = !isNaN(venue1MaxFemaleVal) ? venue1MaxFemaleVal : undefined;
+      venue2Name = v2NameVal || undefined;
+      venue2MaxMale = !isNaN(venue2MaxMaleVal) ? venue2MaxMaleVal : undefined;
+      venue2MaxFemale = !isNaN(venue2MaxFemaleVal) ? venue2MaxFemaleVal : undefined;
 
       if (qrCodeImage instanceof File && qrCodeImage.size > 0) {
         qrCodeImageUrl = await saveUploadedFile(qrCodeImage);
@@ -81,9 +87,11 @@ export async function PUT(req: NextRequest) {
           announcementEnabled = typeof body.announcementEnabled === 'boolean' ? body.announcementEnabled : undefined;
           registrationMode = typeof body.registrationMode === 'string' ? body.registrationMode : undefined;
           venue1Name = typeof body.venue1Name === 'string' ? body.venue1Name : undefined;
-          venue1Max = typeof body.venue1Max === 'number' ? body.venue1Max : undefined;
+          venue1MaxMale = typeof body.venue1MaxMale === 'number' ? body.venue1MaxMale : undefined;
+          venue1MaxFemale = typeof body.venue1MaxFemale === 'number' ? body.venue1MaxFemale : undefined;
           venue2Name = typeof body.venue2Name === 'string' ? body.venue2Name : undefined;
-          venue2Max = typeof body.venue2Max === 'number' ? body.venue2Max : undefined;
+          venue2MaxMale = typeof body.venue2MaxMale === 'number' ? body.venue2MaxMale : undefined;
+          venue2MaxFemale = typeof body.venue2MaxFemale === 'number' ? body.venue2MaxFemale : undefined;
         } catch {
           const params = new URLSearchParams(rawBody);
           maxMale = params.has('maxMale') ? Number(params.get('maxMale') ?? '') : undefined;
@@ -95,9 +103,11 @@ export async function PUT(req: NextRequest) {
           announcementEnabled = params.has('announcementEnabled') ? params.get('announcementEnabled') === 'true' : undefined;
           registrationMode = params.get('registrationMode') || undefined;
           venue1Name = params.get('venue1Name') || undefined;
-          venue1Max = params.has('venue1Max') ? Number(params.get('venue1Max')) : undefined;
+          venue1MaxMale = params.has('venue1MaxMale') ? Number(params.get('venue1MaxMale')) : undefined;
+          venue1MaxFemale = params.has('venue1MaxFemale') ? Number(params.get('venue1MaxFemale')) : undefined;
           venue2Name = params.get('venue2Name') || undefined;
-          venue2Max = params.has('venue2Max') ? Number(params.get('venue2Max')) : undefined;
+          venue2MaxMale = params.has('venue2MaxMale') ? Number(params.get('venue2MaxMale')) : undefined;
+          venue2MaxFemale = params.has('venue2MaxFemale') ? Number(params.get('venue2MaxFemale')) : undefined;
         }
       }
     }
@@ -114,9 +124,11 @@ export async function PUT(req: NextRequest) {
         announcementEnabled: typeof announcementEnabled === 'boolean' ? announcementEnabled : undefined,
         registrationMode: typeof registrationMode === 'string' ? registrationMode : undefined,
         venue1Name: typeof venue1Name === 'string' ? venue1Name : undefined,
-        venue1Max: typeof venue1Max === 'number' ? venue1Max : undefined,
-        venue2Name: typeof venue2Name === 'string' ? venue2Name : undefined,
-        venue2Max: typeof venue2Max === 'number' ? venue2Max : undefined
+        venue1MaxMale: !isNaN(venue1MaxMale as number) ? venue1MaxMale : undefined,
+        venue1MaxFemale: !isNaN(venue1MaxFemale as number) ? venue1MaxFemale : undefined,
+        venue2Name: venue2Name || undefined,
+        venue2MaxMale: !isNaN(venue2MaxMale as number) ? venue2MaxMale : undefined,
+        venue2MaxFemale: !isNaN(venue2MaxFemale as number) ? venue2MaxFemale : undefined
       },
       create: {
         id: 1,
@@ -129,9 +141,11 @@ export async function PUT(req: NextRequest) {
         announcementEnabled: typeof announcementEnabled === 'boolean' ? announcementEnabled : false,
         registrationMode: typeof registrationMode === 'string' ? registrationMode : 'GENDER',
         venue1Name: typeof venue1Name === 'string' ? venue1Name : 'Khel Academy, Kazhakuttom (10:00 to 12:00)',
-        venue1Max: typeof venue1Max === 'number' ? venue1Max : 29,
+        venue1MaxMale: typeof venue1MaxMale === 'number' ? venue1MaxMale : 15,
+        venue1MaxFemale: typeof venue1MaxFemale === 'number' ? venue1MaxFemale : 15,
         venue2Name: typeof venue2Name === 'string' ? venue2Name : 'Falcon Academy (10:30 to 12:30)',
-        venue2Max: typeof venue2Max === 'number' ? venue2Max : 29
+        venue2MaxMale: typeof venue2MaxMale === 'number' ? venue2MaxMale : 15,
+        venue2MaxFemale: typeof venue2MaxFemale === 'number' ? venue2MaxFemale : 15
       }
     });
 

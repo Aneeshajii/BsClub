@@ -15,8 +15,8 @@ export default function AdminPage() {
   const [limits, setLimits] = useState({ 
     maxMale: 29, maxFemale: 29, 
     registrationMode: 'GENDER',
-    venue1Name: '', venue1Max: 29,
-    venue2Name: '', venue2Max: 29,
+    venue1Name: '', venue1MaxMale: 15, venue1MaxFemale: 15,
+    venue2Name: '', venue2MaxMale: 15, venue2MaxFemale: 15,
     registrationOpen: true, qrCodeImageUrl: '', announcementTitle: '', announcementMessage: '', announcementEnabled: false 
   });
   
@@ -78,9 +78,11 @@ export default function AdminPage() {
         registrationOpen: statData.settings.registrationOpen,
         registrationMode: statData.settings.registrationMode || 'GENDER',
         venue1Name: statData.settings.venue1Name || '',
-        venue1Max: statData.settings.venue1Max || 29,
+        venue1MaxMale: statData.settings.venue1MaxMale || 15,
+        venue1MaxFemale: statData.settings.venue1MaxFemale || 15,
         venue2Name: statData.settings.venue2Name || '',
-        venue2Max: statData.settings.venue2Max || 29,
+        venue2MaxMale: statData.settings.venue2MaxMale || 15,
+        venue2MaxFemale: statData.settings.venue2MaxFemale || 15,
         qrCodeImageUrl: statData.settings.qrCodeImageUrl || '',
         announcementTitle: statData.settings.announcementTitle || '',
         announcementMessage: statData.settings.announcementMessage || '',
@@ -130,9 +132,11 @@ export default function AdminPage() {
       formData.append('registrationOpen', limits.registrationOpen.toString());
       formData.append('registrationMode', limits.registrationMode);
       formData.append('venue1Name', limits.venue1Name);
-      formData.append('venue1Max', limits.venue1Max.toString());
+      formData.append('venue1MaxMale', limits.venue1MaxMale.toString());
+      formData.append('venue1MaxFemale', limits.venue1MaxFemale.toString());
       formData.append('venue2Name', limits.venue2Name);
-      formData.append('venue2Max', limits.venue2Max.toString());
+      formData.append('venue2MaxMale', limits.venue2MaxMale.toString());
+      formData.append('venue2MaxFemale', limits.venue2MaxFemale.toString());
       formData.append('announcementTitle', limits.announcementTitle);
       formData.append('announcementMessage', limits.announcementMessage);
       formData.append('announcementEnabled', limits.announcementEnabled.toString());
@@ -154,9 +158,11 @@ export default function AdminPage() {
         registrationOpen: savedSettings.registrationOpen ?? limits.registrationOpen,
         registrationMode: savedSettings.registrationMode ?? limits.registrationMode,
         venue1Name: savedSettings.venue1Name ?? limits.venue1Name,
-        venue1Max: savedSettings.venue1Max ?? limits.venue1Max,
+        venue1MaxMale: savedSettings.venue1MaxMale ?? limits.venue1MaxMale,
+        venue1MaxFemale: savedSettings.venue1MaxFemale ?? limits.venue1MaxFemale,
         venue2Name: savedSettings.venue2Name ?? limits.venue2Name,
-        venue2Max: savedSettings.venue2Max ?? limits.venue2Max,
+        venue2MaxMale: savedSettings.venue2MaxMale ?? limits.venue2MaxMale,
+        venue2MaxFemale: savedSettings.venue2MaxFemale ?? limits.venue2MaxFemale,
         qrCodeImageUrl: savedSettings.qrCodeImageUrl ?? limits.qrCodeImageUrl,
         announcementTitle: savedSettings.announcementTitle ?? limits.announcementTitle,
         announcementMessage: savedSettings.announcementMessage ?? limits.announcementMessage,
@@ -253,12 +259,20 @@ export default function AdminPage() {
           ) : (
             <>
               <div className="stat-card" style={{ overflow: 'hidden' }}>
-                <div style={{ color: '#718096', fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{limits.venue1Name || 'Venue 1'}</div>
-                <div className="stat-value">{status?.counts?.venue1 || 0} / {limits.venue1Max || 0}</div>
+                <div style={{ color: '#718096', fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{limits.venue1Name || 'Venue 1'} (Male)</div>
+                <div className="stat-value">{status?.counts?.venue1Male || 0} / {limits.venue1MaxMale || 0}</div>
               </div>
               <div className="stat-card" style={{ overflow: 'hidden' }}>
-                <div style={{ color: '#718096', fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{limits.venue2Name || 'Venue 2'}</div>
-                <div className="stat-value">{status?.counts?.venue2 || 0} / {limits.venue2Max || 0}</div>
+                <div style={{ color: '#718096', fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{limits.venue1Name || 'Venue 1'} (Female)</div>
+                <div className="stat-value">{status?.counts?.venue1Female || 0} / {limits.venue1MaxFemale || 0}</div>
+              </div>
+              <div className="stat-card" style={{ overflow: 'hidden' }}>
+                <div style={{ color: '#718096', fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{limits.venue2Name || 'Venue 2'} (Male)</div>
+                <div className="stat-value">{status?.counts?.venue2Male || 0} / {limits.venue2MaxMale || 0}</div>
+              </div>
+              <div className="stat-card" style={{ overflow: 'hidden' }}>
+                <div style={{ color: '#718096', fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{limits.venue2Name || 'Venue 2'} (Female)</div>
+                <div className="stat-value">{status?.counts?.venue2Female || 0} / {limits.venue2MaxFemale || 0}</div>
               </div>
             </>
           )}
@@ -320,7 +334,7 @@ export default function AdminPage() {
                   onChange={e => setLimits({...limits, registrationMode: e.target.value})}
                 >
                   <option value="GENDER">Gender (Male/Female)</option>
-                  <option value="VENUE">Venue</option>
+                  <option value="VENUE_AND_GENDER">Venue + Gender</option>
                 </select>
               </div>
 
@@ -357,12 +371,21 @@ export default function AdminPage() {
                     />
                   </div>
                   <div className="form-group">
-                    <label>Venue 1 Max Capacity</label>
+                    <label>Venue 1 Max Male</label>
                     <input 
                       type="number" 
                       className="form-control" 
-                      value={limits.venue1Max}
-                      onChange={e => setLimits({...limits, venue1Max: parseInt(e.target.value) || 0})}
+                      value={limits.venue1MaxMale}
+                      onChange={e => setLimits({...limits, venue1MaxMale: parseInt(e.target.value) || 0})}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Venue 1 Max Female</label>
+                    <input 
+                      type="number" 
+                      className="form-control" 
+                      value={limits.venue1MaxFemale}
+                      onChange={e => setLimits({...limits, venue1MaxFemale: parseInt(e.target.value) || 0})}
                     />
                   </div>
                   <div className="form-group">
@@ -375,12 +398,21 @@ export default function AdminPage() {
                     />
                   </div>
                   <div className="form-group">
-                    <label>Venue 2 Max Capacity</label>
+                    <label>Venue 2 Max Male</label>
                     <input 
                       type="number" 
                       className="form-control" 
-                      value={limits.venue2Max}
-                      onChange={e => setLimits({...limits, venue2Max: parseInt(e.target.value) || 0})}
+                      value={limits.venue2MaxMale}
+                      onChange={e => setLimits({...limits, venue2MaxMale: parseInt(e.target.value) || 0})}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Venue 2 Max Female</label>
+                    <input 
+                      type="number" 
+                      className="form-control" 
+                      value={limits.venue2MaxFemale}
+                      onChange={e => setLimits({...limits, venue2MaxFemale: parseInt(e.target.value) || 0})}
                     />
                   </div>
                 </>

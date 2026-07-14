@@ -25,11 +25,13 @@ model Settings {
   id                  Int     @id @default(1)
   maxMale             Int     @default(29)
   maxFemale           Int     @default(29)
-  registrationMode    String  @default("GENDER") // "GENDER" or "VENUE"
+  registrationMode    String  @default("GENDER") // "GENDER" or "VENUE_AND_GENDER"
   venue1Name          String  @default("Khel Academy, Kazhakuttom (10:00 to 12:00)")
-  venue1Max           Int     @default(29)
+  venue1MaxMale       Int     @default(15)
+  venue1MaxFemale     Int     @default(15)
   venue2Name          String  @default("Falcon Academy (10:30 to 12:30)")
-  venue2Max           Int     @default(29)
+  venue2MaxMale       Int     @default(15)
+  venue2MaxFemale     Int     @default(15)
   registrationOpen    Boolean @default(true)
   qrCodeImageUrl      String  @default("")
   announcementTitle   String  @default("")

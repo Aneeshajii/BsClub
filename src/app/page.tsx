@@ -60,18 +60,44 @@ export default function RegistrationPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleCategorySelect = async (val: string) => {
-    const isVenueMode = status?.settings?.registrationMode === 'VENUE';
-    if (isVenueMode) {
-      setFormData({ ...formData, venue: val, gender: '' });
+  const handleCategorySelect = async (type: 'VENUE' | 'GENDER', val: string) => {
+    const isVenueAndGender = status?.settings?.registrationMode === 'VENUE_AND_GENDER';
+    
+    let newFormData = { ...formData };
+    if (isVenueAndGender) {
+      if (type === 'VENUE') {
+        newFormData.venue = val;
+        newFormData.gender = ''; // Reset gender when venue changes
+        setSlotAvailable(false);
+        setIsClosed(false);
+        setFormData(newFormData);
+        return; // Don't check slots yet, wait for gender
+      } else {
+        newFormData.gender = val;
+        setFormData(newFormData);
+      }
     } else {
-      setFormData({ ...formData, gender: val, venue: '' });
+      if (type === 'VENUE') {
+        newFormData.venue = val;
+        newFormData.gender = '';
+      } else {
+        newFormData.gender = val;
+        newFormData.venue = '';
+      }
+      setFormData(newFormData);
     }
+    
     setCheckingSlots(true);
     setError('');
     
     try {
-      const query = isVenueMode ? `venue=${encodeURIComponent(val)}` : `gender=${val}`;
+      let query = '';
+      if (isVenueAndGender) {
+        query = `venue=${encodeURIComponent(newFormData.venue)}&gender=${newFormData.gender}`;
+      } else {
+        // Technically old modes are gone, but keep fallback just in case
+        query = newFormData.venue ? `venue=${encodeURIComponent(newFormData.venue)}` : `gender=${newFormData.gender}`;
+      }
       const res = await fetch(`/api/check-slots?${query}`);
       const data = await res.json();
       if (data.available) {
@@ -280,20 +306,20 @@ export default function RegistrationPage() {
             </div>
 
             <div className="form-group">
-              <label>{status?.settings?.registrationMode === 'VENUE' ? 'Venue / Time' : 'Gender'}</label>
+              <label>{status?.settings?.registrationMode === 'VENUE_AND_GENDER' ? 'Venue' : 'Gender'}</label>
               <div className="radio-group">
-                {status?.settings?.registrationMode === 'VENUE' ? (
+                {status?.settings?.registrationMode === 'VENUE_AND_GENDER' ? (
                   <>
                     <div 
                       className={`radio-card ${formData.venue === status?.settings?.venue1Name ? 'selected' : ''}`}
-                      onClick={() => handleCategorySelect(status?.settings?.venue1Name || 'Venue 1')}
+                      onClick={() => handleCategorySelect('VENUE', status?.settings?.venue1Name || 'Venue 1')}
                       style={{ pointerEvents: checkingSlots ? 'none' : 'auto', opacity: checkingSlots ? 0.7 : 1, padding: '1rem', fontSize: '0.95rem' }}
                     >
                       {status?.settings?.venue1Name || 'Venue 1'}
                     </div>
                     <div 
                       className={`radio-card ${formData.venue === status?.settings?.venue2Name ? 'selected' : ''}`}
-                      onClick={() => handleCategorySelect(status?.settings?.venue2Name || 'Venue 2')}
+                      onClick={() => handleCategorySelect('VENUE', status?.settings?.venue2Name || 'Venue 2')}
                       style={{ pointerEvents: checkingSlots ? 'none' : 'auto', opacity: checkingSlots ? 0.7 : 1, padding: '1rem', fontSize: '0.95rem' }}
                     >
                       {status?.settings?.venue2Name || 'Venue 2'}
@@ -303,14 +329,14 @@ export default function RegistrationPage() {
                   <>
                     <div 
                       className={`radio-card ${formData.gender === 'Male' ? 'selected' : ''}`}
-                      onClick={() => handleCategorySelect('Male')}
+                      onClick={() => handleCategorySelect('GENDER', 'Male')}
                       style={{ pointerEvents: checkingSlots ? 'none' : 'auto', opacity: checkingSlots ? 0.7 : 1 }}
                     >
                       Male
                     </div>
                     <div 
                       className={`radio-card ${formData.gender === 'Female' ? 'selected' : ''}`}
-                      onClick={() => handleCategorySelect('Female')}
+                      onClick={() => handleCategorySelect('GENDER', 'Female')}
                       style={{ pointerEvents: checkingSlots ? 'none' : 'auto', opacity: checkingSlots ? 0.7 : 1 }}
                     >
                       Female
@@ -318,8 +344,34 @@ export default function RegistrationPage() {
                   </>
                 )}
               </div>
-              {checkingSlots && <div style={{ textAlign: 'center', marginTop: '1rem', color: '#718096', fontStyle: 'italic' }}>Checking slot availability...</div>}
             </div>
+
+            {status?.settings?.registrationMode === 'VENUE_AND_GENDER' && formData.venue && !isClosed && (
+              <div className="form-group animate-fade-in" style={{ animationDuration: '0.4s' }}>
+                <label>Gender</label>
+                <div className="radio-group">
+                  <div 
+                    className={`radio-card ${formData.gender === 'Male' ? 'selected' : ''}`}
+                    onClick={() => handleCategorySelect('GENDER', 'Male')}
+                    style={{ pointerEvents: checkingSlots ? 'none' : 'auto', opacity: checkingSlots ? 0.7 : 1 }}
+                  >
+                    Male
+                  </div>
+                  <div 
+                    className={`radio-card ${formData.gender === 'Female' ? 'selected' : ''}`}
+                    onClick={() => handleCategorySelect('GENDER', 'Female')}
+                    style={{ pointerEvents: checkingSlots ? 'none' : 'auto', opacity: checkingSlots ? 0.7 : 1 }}
+                  >
+                    Female
+                  </div>
+                </div>
+                {checkingSlots && <div style={{ textAlign: 'center', marginTop: '1rem', color: '#718096', fontStyle: 'italic' }}>Checking slot availability...</div>}
+              </div>
+            )}
+            
+            {status?.settings?.registrationMode !== 'VENUE_AND_GENDER' && checkingSlots && (
+              <div style={{ textAlign: 'center', marginTop: '1rem', color: '#718096', fontStyle: 'italic' }}>Checking slot availability...</div>
+            )}
 
             {slotAvailable && (
               <div className="animate-fade-in" style={{ animationDuration: '0.8s' }}>

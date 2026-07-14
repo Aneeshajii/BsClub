@@ -23,12 +23,20 @@ export async function GET(req: NextRequest) {
       if (count >= max) {
         return NextResponse.json({ available: false, message: 'Full' });
       }
-    } else {
+    } else if (settings.registrationMode === 'VENUE_AND_GENDER') {
       if (!venue || (venue !== settings.venue1Name && venue !== settings.venue2Name)) {
         return NextResponse.json({ error: 'Invalid venue' }, { status: 400 });
       }
-      const count = await prisma.registration.count({ where: { venue } });
-      const max = venue === settings.venue1Name ? settings.venue1Max : settings.venue2Max;
+      if (!gender || (gender !== 'Male' && gender !== 'Female')) {
+        return NextResponse.json({ error: 'Invalid gender' }, { status: 400 });
+      }
+      const count = await prisma.registration.count({ where: { venue, gender } });
+      let max = 15;
+      if (venue === settings.venue1Name) {
+        max = gender === 'Male' ? settings.venue1MaxMale : settings.venue1MaxFemale;
+      } else {
+        max = gender === 'Male' ? settings.venue2MaxMale : settings.venue2MaxFemale;
+      }
       if (count >= max) {
         return NextResponse.json({ available: false, message: 'Full' });
       }
