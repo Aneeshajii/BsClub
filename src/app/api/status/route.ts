@@ -17,6 +17,7 @@ export async function GET() {
     const femaleCount = await prisma.registration.count({ where: { gender: 'Female' } });
     const venue1Count = await prisma.registration.count({ where: { venue: settings.venue1Name } });
     const venue2Count = await prisma.registration.count({ where: { venue: settings.venue2Name } });
+    const totalCount = await prisma.registration.count();
 
     const maxMale = settings.maxMale ?? 29;
     const maxFemale = settings.maxFemale ?? 29;
@@ -48,7 +49,7 @@ export async function GET() {
         female: femaleCount,
         venue1: venue1Count,
         venue2: venue2Count,
-        total: maleCount + femaleCount + venue1Count + venue2Count
+        total: totalCount
       },
       status: {
         isMaleFull,
