@@ -319,8 +319,8 @@ export default function AdminPage() {
                   value={limits.registrationMode} 
                   onChange={e => setLimits({...limits, registrationMode: e.target.value})}
                 >
-                  <option value="GENDER">Gender Split (Male/Female)</option>
-                  <option value="VENUE">Venue Split (Dynamic)</option>
+                  <option value="GENDER">Gender (Male/Female)</option>
+                  <option value="VENUE">Venue</option>
                 </select>
               </div>
 
