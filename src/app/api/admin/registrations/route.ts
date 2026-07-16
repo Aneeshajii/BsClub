@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 // Basic security: check for a simple admin password header or cookie.
 // In a real app, use next-auth or similar, but for this simple setup,
 // we'll rely on an Authorization header.

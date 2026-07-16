@@ -56,8 +56,8 @@ export default function AdminPage() {
     setLoading(true);
     try {
       const [resReg, resStat] = await Promise.all([
-        fetch('/api/admin/registrations', { headers: { 'Authorization': `Bearer ${password}` } }),
-        fetch('/api/status')
+        fetch('/api/admin/registrations', { headers: { 'Authorization': `Bearer ${password}` }, cache: 'no-store' }),
+        fetch('/api/status', { cache: 'no-store' })
       ]);
 
       if (resReg.status === 401) {
