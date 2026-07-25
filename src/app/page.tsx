@@ -130,15 +130,81 @@ export default function RegistrationPage() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setter: (file: File | null) => void) => {
+  const compressImage = async (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(file);
+            return;
+          }
+          
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              resolve(newFile);
+            } else {
+              resolve(file);
+            }
+          }, 'image/jpeg', 0.7);
+        };
+        img.onerror = () => resolve(file);
+      };
+      reader.onerror = () => resolve(file);
+    });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, setter: (file: File | null) => void) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+      let file = e.target.files[0];
+      
+      if (file.type.startsWith('image/')) {
+        try {
+          file = await compressImage(file);
+        } catch (err) {
+          console.error("Compression failed", err);
+        }
+      }
+
       if (file.size > 4.5 * 1024 * 1024) {
-        setError('Image is too large. Please upload a file smaller than 4.5MB.');
+        setError('Image is still too large. Please use a smaller file under 4.5MB.');
         setter(null);
         e.target.value = '';
         return;
       }
+      
       setError('');
       setter(file);
     }
