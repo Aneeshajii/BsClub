@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
 
     if (!settings) {
       settings = await prisma.settings.create({
-        data: { id: 1, maxMale: 29, maxFemale: 29, registrationOpen: true, qrCodeImageUrl: '', announcementTitle: '', announcementMessage: '', announcementEnabled: false, registrationMode: 'GENDER', venue1Name: 'Khel Academy, Kazhakuttom (10:00 to 12:00)', venue1MaxMale: 15, venue1MaxFemale: 15, venue2Name: 'Falcon Academy (10:30 to 12:30)', venue2MaxMale: 15, venue2MaxFemale: 15 }
+        data: { id: 1, maxMale: 29, maxFemale: 29, registrationOpen: true, qrCodeImageUrl: '', announcementTitle: '', announcementMessage: '', announcementEnabled: false, registrationMode: 'GENDER', venue1Name: 'Khel Academy, Kazhakuttom (10:00 to 12:00)', venue1MaxMale: 15, venue1MaxFemale: 15, venue2Name: 'Falcon Academy (10:30 to 12:30)', venue2MaxMale: 15, venue2MaxFemale: 15, mensDoublesMax: 15, womensDoublesMax: 15, mixedDoublesMax: 15 }
       });
     }
 
@@ -21,6 +21,19 @@ export async function GET(req: NextRequest) {
     const venue1FemaleCount = await prisma.registration.count({ where: { venue: settings.venue1Name, gender: 'Female' } });
     const venue2MaleCount = await prisma.registration.count({ where: { venue: settings.venue2Name, gender: 'Male' } });
     const venue2FemaleCount = await prisma.registration.count({ where: { venue: settings.venue2Name, gender: 'Female' } });
+    
+    // Tournament counts
+    const mensDoublesCount = await prisma.registration.count({ where: { tournamentCategory: "Men's Doubles" } });
+    const womensDoublesCount = await prisma.registration.count({ where: { tournamentCategory: "Women's Doubles" } });
+    const mixedDoublesCount = await prisma.registration.count({ 
+      where: { 
+        OR: [
+          { tournamentCategory: "Mixed Doubles" },
+          { playingMixedDoubles: true }
+        ]
+      } 
+    });
+
     const totalCount = await prisma.registration.count();
 
     const maxMale = settings.maxMale ?? 29;
@@ -30,12 +43,19 @@ export async function GET(req: NextRequest) {
     let isVenue1FemaleFull = false;
     let isVenue2MaleFull = false;
     let isVenue2FemaleFull = false;
+    let isMensDoublesFull = false;
+    let isWomensDoublesFull = false;
+    let isMixedDoublesFull = false;
 
     if (settings.registrationMode === 'VENUE_AND_GENDER') {
       isVenue1MaleFull = venue1MaleCount >= (settings.venue1MaxMale ?? 15);
       isVenue1FemaleFull = venue1FemaleCount >= (settings.venue1MaxFemale ?? 15);
       isVenue2MaleFull = venue2MaleCount >= (settings.venue2MaxMale ?? 15);
       isVenue2FemaleFull = venue2FemaleCount >= (settings.venue2MaxFemale ?? 15);
+    } else if (settings.registrationMode === 'TOURNAMENT') {
+      isMensDoublesFull = mensDoublesCount >= (settings.mensDoublesMax ?? 15);
+      isWomensDoublesFull = womensDoublesCount >= (settings.womensDoublesMax ?? 15);
+      isMixedDoublesFull = mixedDoublesCount >= (settings.mixedDoublesMax ?? 15);
     }
 
     const registrationOpen = settings.registrationOpen ?? true;
@@ -45,7 +65,9 @@ export async function GET(req: NextRequest) {
 
     const isRegistrationFull = settings.registrationMode === 'GENDER' 
         ? (isMaleFull && isFemaleFull) 
-        : (isVenue1MaleFull && isVenue1FemaleFull && isVenue2MaleFull && isVenue2FemaleFull);
+        : settings.registrationMode === 'VENUE_AND_GENDER' 
+          ? (isVenue1MaleFull && isVenue1FemaleFull && isVenue2MaleFull && isVenue2FemaleFull)
+          : (isMensDoublesFull && isWomensDoublesFull && isMixedDoublesFull);
         
     const isOpen = registrationOpen && !isRegistrationFull;
 
@@ -64,6 +86,9 @@ export async function GET(req: NextRequest) {
         venue1Female: venue1FemaleCount,
         venue2Male: venue2MaleCount,
         venue2Female: venue2FemaleCount,
+        mensDoubles: mensDoublesCount,
+        womensDoubles: womensDoublesCount,
+        mixedDoubles: mixedDoublesCount,
         total: totalCount
       },
       status: {
@@ -73,6 +98,9 @@ export async function GET(req: NextRequest) {
         isVenue1FemaleFull,
         isVenue2MaleFull,
         isVenue2FemaleFull,
+        isMensDoublesFull,
+        isWomensDoublesFull,
+        isMixedDoublesFull,
         isRegistrationFull,
         isOpen
       }
@@ -80,9 +108,9 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error('Error fetching status:', error);
     return NextResponse.json({
-      settings: { id: 1, maxMale: 29, maxFemale: 29, registrationOpen: true, qrCodeImageUrl: '', announcementTitle: '', announcementMessage: '', announcementEnabled: false, registrationMode: 'GENDER', venue1Name: 'Khel Academy, Kazhakuttom (10:00 to 12:00)', venue1Max: 29, venue2Name: 'Falcon Academy (10:30 to 12:30)', venue2Max: 29 },
-      counts: { male: 0, female: 0, venue1: 0, venue2: 0, total: 0 },
-      status: { isMaleFull: false, isFemaleFull: false, isVenue1Full: false, isVenue2Full: false, isRegistrationFull: false, isOpen: true }
+      settings: { id: 1, maxMale: 29, maxFemale: 29, registrationOpen: true, qrCodeImageUrl: '', announcementTitle: '', announcementMessage: '', announcementEnabled: false, registrationMode: 'GENDER', venue1Name: 'Khel Academy, Kazhakuttom (10:00 to 12:00)', venue1MaxMale: 15, venue1MaxFemale: 15, venue2Name: 'Falcon Academy (10:30 to 12:30)', venue2MaxMale: 15, venue2MaxFemale: 15, mensDoublesMax: 15, womensDoublesMax: 15, mixedDoublesMax: 15 },
+      counts: { male: 0, female: 0, venue1Male: 0, venue1Female: 0, venue2Male: 0, venue2Female: 0, mensDoubles: 0, womensDoubles: 0, mixedDoubles: 0, total: 0 },
+      status: { isMaleFull: false, isFemaleFull: false, isVenue1MaleFull: false, isVenue1FemaleFull: false, isVenue2MaleFull: false, isVenue2FemaleFull: false, isMensDoublesFull: false, isWomensDoublesFull: false, isMixedDoublesFull: false, isRegistrationFull: false, isOpen: true }
     });
   }
 }

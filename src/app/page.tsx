@@ -21,10 +21,21 @@ export default function RegistrationPage() {
     registeredBefore: '',
     level: '',
     gender: '',
-    venue: ''
+    venue: '',
+    tournamentCategory: '',
+    partnerName: '',
+    partnerAge: '',
+    partnerLevel: '',
+    playingMixedDoubles: false,
+    mixedPartnerName: '',
+    mixedPartnerAge: '',
+    mixedPartnerLevel: ''
   });
 
   const [screenshot, setScreenshot] = useState<File | null>(null);
+  const [userPhoto, setUserPhoto] = useState<File | null>(null);
+  const [partnerPhoto, setPartnerPhoto] = useState<File | null>(null);
+  const [mixedPartnerPhoto, setMixedPartnerPhoto] = useState<File | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -62,9 +73,15 @@ export default function RegistrationPage() {
 
   const handleCategorySelect = async (type: 'VENUE' | 'GENDER', val: string) => {
     const isVenueAndGender = status?.settings?.registrationMode === 'VENUE_AND_GENDER';
+    const isTournament = status?.settings?.registrationMode === 'TOURNAMENT';
     
     let newFormData = { ...formData };
-    if (isVenueAndGender) {
+    if (isTournament) {
+      newFormData.tournamentCategory = val;
+      newFormData.venue = '';
+      newFormData.gender = '';
+      setFormData(newFormData);
+    } else if (isVenueAndGender) {
       if (type === 'VENUE') {
         newFormData.venue = val;
         newFormData.gender = ''; // Reset gender when venue changes
@@ -92,10 +109,11 @@ export default function RegistrationPage() {
     
     try {
       let query = '';
-      if (isVenueAndGender) {
+      if (isTournament) {
+        query = `tournamentCategory=${encodeURIComponent(newFormData.tournamentCategory)}`;
+      } else if (isVenueAndGender) {
         query = `venue=${encodeURIComponent(newFormData.venue)}&gender=${newFormData.gender}`;
       } else {
-        // Technically old modes are gone, but keep fallback just in case
         query = newFormData.venue ? `venue=${encodeURIComponent(newFormData.venue)}` : `gender=${newFormData.gender}`;
       }
       const res = await fetch(`/api/check-slots?${query}`);
@@ -112,18 +130,17 @@ export default function RegistrationPage() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setter: (file: File | null) => void) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      // Vercel Serverless limit is 4.5MB. We block it here to prevent HTML error crash.
       if (file.size > 4.5 * 1024 * 1024) {
         setError('Image is too large. Please upload a file smaller than 4.5MB.');
-        setScreenshot(null);
+        setter(null);
         e.target.value = '';
         return;
       }
       setError('');
-      setScreenshot(file);
+      setter(file);
     }
   };
 
@@ -131,13 +148,37 @@ export default function RegistrationPage() {
     e.preventDefault();
     setError('');
 
-    if (!formData.name || !formData.phone || (!formData.gender && !formData.venue) || !formData.registeredBefore || !formData.level || !screenshot) {
-      setError('Please fill all fields and upload the payment screenshot.');
-      return;
-    }
-    if (!formData.age || Number.isNaN(Number(formData.age))) {
-      setError('Please provide a valid age.');
-      return;
+    const isTournament = status?.settings?.registrationMode === 'TOURNAMENT';
+
+    if (isTournament) {
+      if (!formData.name || !formData.phone || !formData.tournamentCategory || !formData.registeredBefore || !formData.level || !screenshot || !formData.partnerName || !formData.partnerLevel || !userPhoto || !partnerPhoto) {
+        setError('Please fill all required fields and upload all required images.');
+        return;
+      }
+      if (!formData.age || Number.isNaN(Number(formData.age)) || !formData.partnerAge || Number.isNaN(Number(formData.partnerAge))) {
+        setError('Please provide valid ages for both players.');
+        return;
+      }
+
+      if (formData.playingMixedDoubles) {
+        if (!formData.mixedPartnerName || !formData.mixedPartnerLevel || !mixedPartnerPhoto) {
+          setError('Please fill all Mixed Doubles partner details and upload their image.');
+          return;
+        }
+        if (!formData.mixedPartnerAge || Number.isNaN(Number(formData.mixedPartnerAge))) {
+          setError('Please provide a valid age for your Mixed Doubles partner.');
+          return;
+        }
+      }
+    } else {
+      if (!formData.name || !formData.phone || (!formData.gender && !formData.venue) || !formData.registeredBefore || !formData.level || !screenshot) {
+        setError('Please fill all fields and upload the payment screenshot.');
+        return;
+      }
+      if (!formData.age || Number.isNaN(Number(formData.age))) {
+        setError('Please provide a valid age.');
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -151,6 +192,23 @@ export default function RegistrationPage() {
       form.append('registeredBefore', formData.registeredBefore);
       form.append('level', formData.level);
       form.append('screenshot', screenshot);
+      
+      if (isTournament) {
+        form.append('tournamentCategory', formData.tournamentCategory);
+        form.append('partnerName', formData.partnerName);
+        form.append('partnerAge', formData.partnerAge);
+        form.append('partnerLevel', formData.partnerLevel);
+        if (userPhoto) form.append('userPhoto', userPhoto);
+        if (partnerPhoto) form.append('partnerPhoto', partnerPhoto);
+        
+        form.append('playingMixedDoubles', formData.playingMixedDoubles.toString());
+        if (formData.playingMixedDoubles) {
+          form.append('mixedPartnerName', formData.mixedPartnerName);
+          form.append('mixedPartnerAge', formData.mixedPartnerAge);
+          form.append('mixedPartnerLevel', formData.mixedPartnerLevel);
+          if (mixedPartnerPhoto) form.append('mixedPartnerPhoto', mixedPartnerPhoto);
+        }
+      }
 
       const res = await fetch('/api/register', {
         method: 'POST',
@@ -306,9 +364,28 @@ export default function RegistrationPage() {
             </div>
 
             <div className="form-group">
-              <label>{status?.settings?.registrationMode === 'VENUE_AND_GENDER' ? 'Venue' : 'Gender'}</label>
+              <label>
+                {status?.settings?.registrationMode === 'TOURNAMENT' 
+                  ? 'Tournament Category' 
+                  : status?.settings?.registrationMode === 'VENUE_AND_GENDER' 
+                    ? 'Venue' 
+                    : 'Gender'}
+              </label>
               <div className="radio-group">
-                {status?.settings?.registrationMode === 'VENUE_AND_GENDER' ? (
+                {status?.settings?.registrationMode === 'TOURNAMENT' ? (
+                  <>
+                    {["Men's Doubles", "Women's Doubles", "Mixed Doubles"].map(cat => (
+                      <div 
+                        key={cat}
+                        className={`radio-card ${formData.tournamentCategory === cat ? 'selected' : ''}`}
+                        onClick={() => handleCategorySelect('VENUE', cat)}
+                        style={{ pointerEvents: checkingSlots ? 'none' : 'auto', opacity: checkingSlots ? 0.7 : 1, padding: '1rem', fontSize: '0.95rem' }}
+                      >
+                        {cat}
+                      </div>
+                    ))}
+                  </>
+                ) : status?.settings?.registrationMode === 'VENUE_AND_GENDER' ? (
                   <>
                     <div 
                       className={`radio-card ${formData.venue === status?.settings?.venue1Name ? 'selected' : ''}`}
@@ -344,6 +421,9 @@ export default function RegistrationPage() {
                   </>
                 )}
               </div>
+              {status?.settings?.registrationMode === 'TOURNAMENT' && checkingSlots && (
+                <div style={{ textAlign: 'center', marginTop: '1rem', color: '#718096', fontStyle: 'italic' }}>Checking slot availability...</div>
+              )}
             </div>
 
             {status?.settings?.registrationMode === 'VENUE_AND_GENDER' && formData.venue && !isClosed && (
@@ -369,8 +449,177 @@ export default function RegistrationPage() {
               </div>
             )}
             
-            {status?.settings?.registrationMode !== 'VENUE_AND_GENDER' && checkingSlots && (
+            {status?.settings?.registrationMode === 'GENDER' && checkingSlots && (
               <div style={{ textAlign: 'center', marginTop: '1rem', color: '#718096', fontStyle: 'italic' }}>Checking slot availability...</div>
+            )}
+
+            {status?.settings?.registrationMode === 'TOURNAMENT' && slotAvailable && (
+              <div className="animate-fade-in" style={{ animationDuration: '0.6s', background: '#f8fafc', padding: '1.5rem', borderRadius: '12px', marginBottom: '2rem' }}>
+                <h3 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>Partner Details</h3>
+                
+                <div className="form-group">
+                  <label>Partner's Name</label>
+                  <input 
+                    type="text" 
+                    name="partnerName" 
+                    className="form-control" 
+                    placeholder="Enter partner's full name" 
+                    value={formData.partnerName} 
+                    onChange={handleChange}
+                    disabled={submitting}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Partner's Age</label>
+                  <input
+                    type="number"
+                    name="partnerAge"
+                    className="form-control"
+                    placeholder="Enter partner's age"
+                    value={formData.partnerAge}
+                    onChange={handleChange}
+                    disabled={submitting}
+                    min={1}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Partner's Level</label>
+                  <select 
+                    name="partnerLevel" 
+                    className="form-control" 
+                    value={formData.partnerLevel} 
+                    onChange={handleChange as any}
+                    disabled={submitting}
+                  >
+                    <option value="" disabled>Select partner's playing level</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                  </select>
+                </div>
+                
+                {(formData.tournamentCategory === "Men's Doubles" || formData.tournamentCategory === "Women's Doubles") && (
+                  <div className="form-group" style={{ marginTop: '2rem', padding: '1.5rem', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <label style={{ fontSize: '1.1rem', color: 'var(--primary)', marginBottom: '1rem' }}>Would you like to register for another event? (Mixed Doubles)</label>
+                    <div className="radio-group">
+                      <div 
+                        className={`radio-card ${formData.playingMixedDoubles === true ? 'selected' : ''}`}
+                        onClick={() => setFormData({ ...formData, playingMixedDoubles: true })}
+                        style={{ opacity: submitting ? 0.7 : 1, pointerEvents: submitting ? 'none' : 'auto' }}
+                      >
+                        Yes
+                      </div>
+                      <div 
+                        className={`radio-card ${formData.playingMixedDoubles === false ? 'selected' : ''}`}
+                        onClick={() => setFormData({ ...formData, playingMixedDoubles: false })}
+                        style={{ opacity: submitting ? 0.7 : 1, pointerEvents: submitting ? 'none' : 'auto' }}
+                      >
+                        No
+                      </div>
+                    </div>
+                    
+                    {formData.playingMixedDoubles && (
+                      <div className="animate-fade-in" style={{ marginTop: '1.5rem' }}>
+                        <div className="form-group">
+                          <label>Mixed Doubles Partner's Name</label>
+                          <input 
+                            type="text" 
+                            name="mixedPartnerName" 
+                            className="form-control" 
+                            placeholder="Enter mixed partner's full name" 
+                            value={formData.mixedPartnerName} 
+                            onChange={handleChange}
+                            disabled={submitting}
+                          />
+                        </div>
+
+                        <div className="form-group">
+                          <label>Mixed Doubles Partner's Age</label>
+                          <input
+                            type="number"
+                            name="mixedPartnerAge"
+                            className="form-control"
+                            placeholder="Enter mixed partner's age"
+                            value={formData.mixedPartnerAge}
+                            onChange={handleChange}
+                            disabled={submitting}
+                            min={1}
+                          />
+                        </div>
+
+                        <div className="form-group">
+                          <label>Mixed Doubles Partner's Level</label>
+                          <select 
+                            name="mixedPartnerLevel" 
+                            className="form-control" 
+                            value={formData.mixedPartnerLevel} 
+                            onChange={handleChange as any}
+                            disabled={submitting}
+                          >
+                            <option value="" disabled>Select mixed partner's playing level</option>
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div style={{ marginTop: '2rem' }}>
+                  <h4 style={{ marginBottom: '1rem', color: 'var(--text-dark)', fontWeight: 700 }}>Upload images for verification</h4>
+                  
+                  <div className="form-group">
+                    <label>Your Image</label>
+                    <div className="file-upload-wrapper">
+                      <div className="file-upload-btn">
+                        {userPhoto ? userPhoto.name : 'Upload Your Image'}
+                      </div>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={(e) => handleFileChange(e, setUserPhoto)} 
+                        disabled={submitting}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Partner's Image</label>
+                    <div className="file-upload-wrapper">
+                      <div className="file-upload-btn">
+                        {partnerPhoto ? partnerPhoto.name : 'Upload Partner Image'}
+                      </div>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={(e) => handleFileChange(e, setPartnerPhoto)} 
+                        disabled={submitting}
+                      />
+                    </div>
+                  </div>
+
+                  {formData.playingMixedDoubles && (
+                    <div className="form-group animate-fade-in">
+                      <label>Mixed Partner's Image</label>
+                      <div className="file-upload-wrapper">
+                        <div className="file-upload-btn">
+                          {mixedPartnerPhoto ? mixedPartnerPhoto.name : 'Upload Mixed Partner Image'}
+                        </div>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={(e) => handleFileChange(e, setMixedPartnerPhoto)} 
+                          disabled={submitting}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
 
             {slotAvailable && (
@@ -395,7 +644,7 @@ export default function RegistrationPage() {
                     <input 
                       type="file" 
                       accept="image/*" 
-                      onChange={handleFileChange} 
+                      onChange={(e) => handleFileChange(e, setScreenshot)} 
                       disabled={submitting}
                     />
                   </div>

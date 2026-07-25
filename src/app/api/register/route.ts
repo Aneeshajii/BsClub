@@ -15,9 +15,24 @@ export async function POST(req: NextRequest) {
     const registeredBefore = formData.get('registeredBefore') as string;
     const level = formData.get('level') as string;
     const screenshot = formData.get('screenshot') as File;
-
-    if (!name || !phone || (!gender && !venue) || !registeredBefore || !level || !screenshot) {
-      return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
+    
+    // Tournament Fields
+    const tournamentCategory = formData.get('tournamentCategory') as string;
+    const partnerName = formData.get('partnerName') as string;
+    const partnerAgeValue = formData.get('partnerAge');
+    const partnerAge = typeof partnerAgeValue === 'string' ? Number(partnerAgeValue) : undefined;
+    const partnerLevel = formData.get('partnerLevel') as string;
+    const userPhoto = formData.get('userPhoto') as File | null;
+    const partnerPhoto = formData.get('partnerPhoto') as File | null;
+    
+    const playingMixedDoubles = formData.get('playingMixedDoubles') === 'true';
+    const mixedPartnerName = formData.get('mixedPartnerName') as string | null;
+    const mixedPartnerAgeValue = formData.get('mixedPartnerAge');
+    const mixedPartnerAge = typeof mixedPartnerAgeValue === 'string' && mixedPartnerAgeValue ? Number(mixedPartnerAgeValue) : undefined;
+    const mixedPartnerLevel = formData.get('mixedPartnerLevel') as string | null;
+    const mixedPartnerPhoto = formData.get('mixedPartnerPhoto') as File | null;
+    if (!name || !phone || !screenshot) {
+      return NextResponse.json({ error: 'Name, phone, and payment screenshot are required' }, { status: 400 });
     }
 
     // 1. Fast-fail check before doing any expensive uploads
@@ -26,17 +41,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'This phone number has already been registered.' }, { status: 400 });
     }
 
-    // 2. Save the file to configured storage (S3 or Local) OUTSIDE the transaction
-    // This prevents exhausting the database connection pool while waiting for network I/O
-    const bytes = await screenshot.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    
-    // Sanitize the filename to absolutely guarantee no weird characters break Vercel Blob
-    const mimeExt = screenshot.type ? screenshot.type.split('/')[1] : 'jpg';
-    const safeExt = mimeExt.replace(/[^a-zA-Z0-9]/g, '');
-    const filename = `reg-${Date.now()}-${Math.random().toString(36).substring(7)}.${safeExt || 'jpg'}`;
+    // 2. Save files to configured storage (S3 or Local) OUTSIDE the transaction
+    const uploadFile = async (file: File, prefix: string) => {
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const mimeExt = file.type ? file.type.split('/')[1] : 'jpg';
+      const safeExt = mimeExt.replace(/[^a-zA-Z0-9]/g, '');
+      const filename = `${prefix}-${Date.now()}-${Math.random().toString(36).substring(7)}.${safeExt || 'jpg'}`;
+      return upload(buffer, filename, file.type || 'image/jpeg');
+    };
 
-    const fileUrl = await upload(buffer, filename, screenshot.type || 'image/jpeg');
+    const fileUrl = await uploadFile(screenshot, 'reg');
+    let userPhotoUrl = null;
+    let partnerPhotoUrl = null;
+    let mixedPartnerPhotoUrl = null;
+
+    if (userPhoto && userPhoto.size > 0) {
+      userPhotoUrl = await uploadFile(userPhoto, 'uimg');
+    }
+    if (partnerPhoto && partnerPhoto.size > 0) {
+      partnerPhotoUrl = await uploadFile(partnerPhoto, 'pimg');
+    }
+    if (mixedPartnerPhoto && mixedPartnerPhoto.size > 0) {
+      mixedPartnerPhotoUrl = await uploadFile(mixedPartnerPhoto, 'mimg');
+    }
 
     // 3. Start database transaction for registration limits and final insert
     const result = await prisma.$transaction(async (tx) => {
@@ -85,6 +113,42 @@ export async function POST(req: NextRequest) {
         if (venueCount >= max) {
           throw new Error(`${venue} (${gender}) registrations are full.`);
         }
+      } else if (settings.registrationMode === 'TOURNAMENT') {
+        if (!tournamentCategory || !["Men's Doubles", "Women's Doubles", "Mixed Doubles"].includes(tournamentCategory)) {
+          throw new Error('Invalid tournament category');
+        }
+        
+        let tournamentCount = 0;
+        if (tournamentCategory === "Mixed Doubles") {
+          tournamentCount = await tx.registration.count({ 
+            where: { OR: [{ tournamentCategory: "Mixed Doubles" }, { playingMixedDoubles: true }] } 
+          });
+        } else {
+          tournamentCount = await tx.registration.count({ where: { tournamentCategory } });
+        }
+
+        let max = 15;
+        if (tournamentCategory === "Men's Doubles") max = settings.mensDoublesMax;
+        else if (tournamentCategory === "Women's Doubles") max = settings.womensDoublesMax;
+        else if (tournamentCategory === "Mixed Doubles") max = settings.mixedDoublesMax;
+
+        if (tournamentCount >= max) {
+          throw new Error(`${tournamentCategory} registrations are full.`);
+        }
+
+        if (playingMixedDoubles) {
+          const mixedCount = await tx.registration.count({ 
+            where: { 
+              OR: [
+                { tournamentCategory: "Mixed Doubles" },
+                { playingMixedDoubles: true }
+              ]
+            } 
+          });
+          if (mixedCount >= settings.mixedDoublesMax) {
+            throw new Error(`Mixed Doubles registrations are full.`);
+          }
+        }
       }
 
       // Final check for phone just in case it was inserted during the upload gap
@@ -100,11 +164,22 @@ export async function POST(req: NextRequest) {
         data: {
           name,
           phone,
-          gender: gender || null,
-          venue: settings.registrationMode === 'GENDER' ? null : venue,
-          registeredBefore,
-          level,
+          gender: settings.registrationMode !== 'TOURNAMENT' ? (gender || null) : null,
+          venue: settings.registrationMode === 'VENUE_AND_GENDER' ? venue : null,
+          registeredBefore: registeredBefore || null,
+          level: level || null,
           age: typeof age === 'number' && !Number.isNaN(age) ? age : undefined,
+          partnerName: partnerName || null,
+          partnerAge: typeof partnerAge === 'number' && !Number.isNaN(partnerAge) ? partnerAge : undefined,
+          partnerLevel: partnerLevel || null,
+          userPhotoUrl: userPhotoUrl || null,
+          partnerPhotoUrl: partnerPhotoUrl || null,
+          tournamentCategory: settings.registrationMode === 'TOURNAMENT' ? tournamentCategory : null,
+          playingMixedDoubles: settings.registrationMode === 'TOURNAMENT' ? playingMixedDoubles : false,
+          mixedPartnerName: mixedPartnerName || null,
+          mixedPartnerAge: typeof mixedPartnerAge === 'number' && !Number.isNaN(mixedPartnerAge) ? mixedPartnerAge : undefined,
+          mixedPartnerLevel: mixedPartnerLevel || null,
+          mixedPartnerPhotoUrl: mixedPartnerPhotoUrl || null,
           paymentScreenshotUrl: fileUrl,
           registrationId: tempId
         }

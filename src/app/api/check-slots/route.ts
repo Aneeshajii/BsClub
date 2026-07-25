@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const gender = searchParams.get('gender');
     const venue = searchParams.get('venue');
+    const tournamentCategory = searchParams.get('tournamentCategory');
 
     const settings = await prisma.settings.findUnique({ where: { id: 1 } });
     if (!settings || !settings.registrationOpen) {
@@ -38,6 +39,24 @@ export async function GET(req: NextRequest) {
         max = gender === 'Male' ? settings.venue2MaxMale : settings.venue2MaxFemale;
       }
       if (count >= max) {
+        return NextResponse.json({ available: false, message: 'Full' });
+      }
+    } else if (settings.registrationMode === 'TOURNAMENT' && tournamentCategory) {
+      let tournamentCount = 0;
+      if (tournamentCategory === "Mixed Doubles") {
+        tournamentCount = await prisma.registration.count({ 
+          where: { OR: [{ tournamentCategory: "Mixed Doubles" }, { playingMixedDoubles: true }] } 
+        });
+      } else {
+        tournamentCount = await prisma.registration.count({ where: { tournamentCategory } });
+      }
+      
+      let max = 15;
+      if (tournamentCategory === "Men's Doubles") max = settings.mensDoublesMax;
+      else if (tournamentCategory === "Women's Doubles") max = settings.womensDoublesMax;
+      else if (tournamentCategory === "Mixed Doubles") max = settings.mixedDoublesMax;
+      
+      if (tournamentCount >= max) {
         return NextResponse.json({ available: false, message: 'Full' });
       }
     }

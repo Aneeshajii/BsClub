@@ -38,6 +38,9 @@ export async function PUT(req: NextRequest) {
     let venue2Name: string | undefined;
     let venue2MaxMale: number | undefined;
     let venue2MaxFemale: number | undefined;
+    let mensDoublesMax: number | undefined;
+    let womensDoublesMax: number | undefined;
+    let mixedDoublesMax: number | undefined;
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await req.formData();
@@ -55,6 +58,9 @@ export async function PUT(req: NextRequest) {
       const v2NameVal = formData.get('venue2Name') as string;
       const venue2MaxMaleVal = Number(formData.get('venue2MaxMale'));
       const venue2MaxFemaleVal = Number(formData.get('venue2MaxFemale'));
+      const mensDoublesMaxVal = Number(formData.get('mensDoublesMax'));
+      const womensDoublesMaxVal = Number(formData.get('womensDoublesMax'));
+      const mixedDoublesMaxVal = Number(formData.get('mixedDoublesMax'));
 
       maxMale = typeof maxMaleValue === 'string' ? Number(maxMaleValue) : undefined;
       maxFemale = typeof maxFemaleValue === 'string' ? Number(maxFemaleValue) : undefined;
@@ -69,6 +75,9 @@ export async function PUT(req: NextRequest) {
       venue2Name = v2NameVal || undefined;
       venue2MaxMale = !isNaN(venue2MaxMaleVal) ? venue2MaxMaleVal : undefined;
       venue2MaxFemale = !isNaN(venue2MaxFemaleVal) ? venue2MaxFemaleVal : undefined;
+      mensDoublesMax = !isNaN(mensDoublesMaxVal) ? mensDoublesMaxVal : undefined;
+      womensDoublesMax = !isNaN(womensDoublesMaxVal) ? womensDoublesMaxVal : undefined;
+      mixedDoublesMax = !isNaN(mixedDoublesMaxVal) ? mixedDoublesMaxVal : undefined;
 
       if (qrCodeImage instanceof File && qrCodeImage.size > 0) {
         qrCodeImageUrl = await saveUploadedFile(qrCodeImage);
@@ -108,6 +117,9 @@ export async function PUT(req: NextRequest) {
           venue2Name = params.get('venue2Name') || undefined;
           venue2MaxMale = params.has('venue2MaxMale') ? Number(params.get('venue2MaxMale')) : undefined;
           venue2MaxFemale = params.has('venue2MaxFemale') ? Number(params.get('venue2MaxFemale')) : undefined;
+          mensDoublesMax = params.has('mensDoublesMax') ? Number(params.get('mensDoublesMax')) : undefined;
+          womensDoublesMax = params.has('womensDoublesMax') ? Number(params.get('womensDoublesMax')) : undefined;
+          mixedDoublesMax = params.has('mixedDoublesMax') ? Number(params.get('mixedDoublesMax')) : undefined;
         }
       }
     }
@@ -128,7 +140,10 @@ export async function PUT(req: NextRequest) {
         venue1MaxFemale: !isNaN(venue1MaxFemale as number) ? venue1MaxFemale : undefined,
         venue2Name: venue2Name || undefined,
         venue2MaxMale: !isNaN(venue2MaxMale as number) ? venue2MaxMale : undefined,
-        venue2MaxFemale: !isNaN(venue2MaxFemale as number) ? venue2MaxFemale : undefined
+        venue2MaxFemale: !isNaN(venue2MaxFemale as number) ? venue2MaxFemale : undefined,
+        mensDoublesMax: !isNaN(mensDoublesMax as number) ? mensDoublesMax : undefined,
+        womensDoublesMax: !isNaN(womensDoublesMax as number) ? womensDoublesMax : undefined,
+        mixedDoublesMax: !isNaN(mixedDoublesMax as number) ? mixedDoublesMax : undefined
       },
       create: {
         id: 1,
@@ -145,7 +160,10 @@ export async function PUT(req: NextRequest) {
         venue1MaxFemale: typeof venue1MaxFemale === 'number' ? venue1MaxFemale : 15,
         venue2Name: typeof venue2Name === 'string' ? venue2Name : 'Falcon Academy (10:30 to 12:30)',
         venue2MaxMale: typeof venue2MaxMale === 'number' ? venue2MaxMale : 15,
-        venue2MaxFemale: typeof venue2MaxFemale === 'number' ? venue2MaxFemale : 15
+        venue2MaxFemale: typeof venue2MaxFemale === 'number' ? venue2MaxFemale : 15,
+        mensDoublesMax: typeof mensDoublesMax === 'number' ? mensDoublesMax : 15,
+        womensDoublesMax: typeof womensDoublesMax === 'number' ? womensDoublesMax : 15,
+        mixedDoublesMax: typeof mixedDoublesMax === 'number' ? mixedDoublesMax : 15
       }
     });
 
