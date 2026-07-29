@@ -194,26 +194,69 @@ export default function AdminPage() {
     doc.text("B's Club Registrations", 14, 15);
     
     const tableColumn = ["Name", "Partner", "Phone", "Category", "Age", "Registered Before", "Level"];
-    const tableRows: any[] = [];
     
-    registrations.forEach(r => {
-      const rowData = [
-        r.name,
-        r.partnerName || '-',
-        r.phone,
-        r.tournamentCategory || r.venue || r.gender || '',
-        r.age || '',
-        r.registeredBefore || '',
-        r.level || ''
-      ];
-      tableRows.push(rowData);
-    });
-    
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 20,
-    });
+    if (limits.registrationMode === 'TOURNAMENT') {
+      const mens = registrations.filter(r => r.tournamentCategory === "Men's Doubles");
+      const womens = registrations.filter(r => r.tournamentCategory === "Women's Doubles");
+      const mixed = registrations.filter(r => r.tournamentCategory === "Mixed Doubles" || r.playingMixedDoubles);
+      
+      let currentY = 25;
+
+      const drawTable = (list: any[], title: string, isMixed: boolean) => {
+        if (list.length === 0) return;
+        
+        doc.setFontSize(12);
+        doc.text(title + ` (${list.length})`, 14, currentY);
+        
+        const rows = list.map(r => {
+          const useMixedDetails = isMixed && r.playingMixedDoubles && r.tournamentCategory !== "Mixed Doubles";
+          const pName = useMixedDetails ? r.mixedPartnerName : r.partnerName;
+          
+          return [
+            r.name,
+            pName || '-',
+            r.phone,
+            isMixed ? "Mixed Doubles" : (r.tournamentCategory || ''),
+            r.age || '',
+            r.registeredBefore || '',
+            r.level || ''
+          ];
+        });
+
+        autoTable(doc, {
+          head: [tableColumn],
+          body: rows,
+          startY: currentY + 5,
+        });
+        
+        currentY = (doc as any).lastAutoTable.finalY + 15;
+      };
+
+      drawTable(mens, "Men's Doubles", false);
+      drawTable(womens, "Women's Doubles", false);
+      drawTable(mixed, "Mixed Doubles", true);
+      
+    } else {
+      const tableRows: any[] = [];
+      registrations.forEach(r => {
+        const rowData = [
+          r.name,
+          r.partnerName || '-',
+          r.phone,
+          r.tournamentCategory || r.venue || r.gender || '',
+          r.age || '',
+          r.registeredBefore || '',
+          r.level || ''
+        ];
+        tableRows.push(rowData);
+      });
+      
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 20,
+      });
+    }
     
     doc.save("Bs_Club_Registrations.pdf");
   };
