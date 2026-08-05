@@ -56,10 +56,16 @@ export default function AdminPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [resReg, resStat] = await Promise.all([
-        fetch('/api/admin/registrations', { headers: { 'Authorization': `Bearer ${password}` }, cache: 'no-store' }),
-        fetch('/api/status', { cache: 'no-store' })
-      ]);
+      // Fetch status first to determine the current registration mode
+      const resStat = await fetch('/api/status', { cache: 'no-store' });
+      const statData = await resStat.json();
+      
+      const currentMode = statData.settings?.registrationMode || 'GENDER';
+
+      const resReg = await fetch(`/api/admin/registrations?mode=${currentMode}`, { 
+        headers: { 'Authorization': `Bearer ${password}` }, 
+        cache: 'no-store' 
+      });
 
       if (resReg.status === 401) {
         setAuthenticated(false);
@@ -69,7 +75,6 @@ export default function AdminPage() {
       }
 
       const regData = await resReg.json();
-      const statData = await resStat.json();
 
       setRegistrations(regData);
       setStatus(statData);
@@ -124,6 +129,27 @@ export default function AdminPage() {
       fetchData();
     } catch (err) {
       alert('Failed to delete');
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    const confirmMessage = `Are you sure you want to delete all registrations for the currently selected registration mode (${limits.registrationMode})?\n\nThis action cannot be undone.`;
+    if (!confirm(confirmMessage)) return;
+
+    try {
+      const res = await fetch(`/api/admin/registrations?mode=${limits.registrationMode}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${password}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`Successfully deleted ${data.count} registrations for mode: ${limits.registrationMode}`);
+        fetchData();
+      } else {
+        alert('Failed to delete all registrations');
+      }
+    } catch (err) {
+      alert('An error occurred during deletion');
     }
   };
 
@@ -546,9 +572,10 @@ export default function AdminPage() {
           </div>
 
           <div style={{ flex: '3 1 600px' }}>
-            <div className="admin-controls">
+            <div className="admin-controls" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
               <h3 style={{ flex: 1 }}>Registrations Data</h3>
               <button className="btn" onClick={exportToPDF} style={{ width: 'auto', padding: '0.8rem 1.5rem', fontSize: '1rem' }}>Export to PDF</button>
+              <button className="btn" onClick={handleDeleteAll} style={{ width: 'auto', padding: '0.8rem 1.5rem', fontSize: '1rem', background: '#e53e3e', borderColor: '#c53030' }}>Delete All ({limits.registrationMode})</button>
             </div>
             
             {limits.registrationMode === 'TOURNAMENT' ? (
