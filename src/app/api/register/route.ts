@@ -35,11 +35,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Name, phone, and payment screenshot are required' }, { status: 400 });
     }
 
-    // 1. Fast-fail check before doing any expensive uploads
-    const existing = await prisma.registration.findUnique({ where: { phone } });
-    if (existing) {
-      return NextResponse.json({ error: 'This phone number has already been registered.' }, { status: 400 });
-    }
 
     // 2. Save files to configured storage (S3 or Local) OUTSIDE the transaction
     const uploadFile = async (file: File, prefix: string) => {
@@ -151,11 +146,6 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // Final check for phone just in case it was inserted during the upload gap
-      const concurrentExisting = await tx.registration.findUnique({ where: { phone } });
-      if (concurrentExisting) {
-        throw new Error('This phone number has already been registered.');
-      }
 
       // 4. Create the registration record
       const tempId = `TEMP-${Date.now()}-${Math.random()}`;

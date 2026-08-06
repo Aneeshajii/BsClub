@@ -11,7 +11,7 @@ model Registration {
   id                   Int      @id @default(autoincrement())
   registrationId       String   @unique // e.g. BSC0001
   name                 String
-  phone                String   @unique
+  phone                String
   gender               String?  // "Male" or "Female" (Optional now)
   venue                String?  // e.g. "Venue 1" or "Venue 2"
   age                  Int?
