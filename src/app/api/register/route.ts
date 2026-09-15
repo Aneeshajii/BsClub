@@ -10,8 +10,7 @@ export async function POST(req: NextRequest) {
     const phone = formData.get('phone') as string;
     const gender = formData.get('gender') as string;
     const venue = formData.get('venue') as string;
-    const ageValue = formData.get('age');
-    const age = typeof ageValue === 'string' ? Number(ageValue) : undefined;
+    const email = formData.get('email') as string;
     const registeredBefore = formData.get('registeredBefore') as string;
     const level = formData.get('level') as string;
     const screenshot = formData.get('screenshot') as File;
@@ -19,16 +18,14 @@ export async function POST(req: NextRequest) {
     // Tournament Fields
     const tournamentCategory = formData.get('tournamentCategory') as string;
     const partnerName = formData.get('partnerName') as string;
-    const partnerAgeValue = formData.get('partnerAge');
-    const partnerAge = typeof partnerAgeValue === 'string' ? Number(partnerAgeValue) : undefined;
+    const partnerEmail = formData.get('partnerEmail') as string;
     const partnerLevel = formData.get('partnerLevel') as string;
     const userPhoto = formData.get('userPhoto') as File | null;
     const partnerPhoto = formData.get('partnerPhoto') as File | null;
     
     const playingMixedDoubles = formData.get('playingMixedDoubles') === 'true';
     const mixedPartnerName = formData.get('mixedPartnerName') as string | null;
-    const mixedPartnerAgeValue = formData.get('mixedPartnerAge');
-    const mixedPartnerAge = typeof mixedPartnerAgeValue === 'string' && mixedPartnerAgeValue ? Number(mixedPartnerAgeValue) : undefined;
+    const mixedPartnerEmail = formData.get('mixedPartnerEmail') as string | null;
     const mixedPartnerLevel = formData.get('mixedPartnerLevel') as string | null;
     const mixedPartnerPhoto = formData.get('mixedPartnerPhoto') as File | null;
     if (!name || !phone || !screenshot) {
@@ -158,16 +155,16 @@ export async function POST(req: NextRequest) {
           venue: settings.registrationMode === 'VENUE_AND_GENDER' ? venue : null,
           registeredBefore: registeredBefore || null,
           level: level || null,
-          age: typeof age === 'number' && !Number.isNaN(age) ? age : undefined,
+          email: email || null,
           partnerName: partnerName || null,
-          partnerAge: typeof partnerAge === 'number' && !Number.isNaN(partnerAge) ? partnerAge : undefined,
+          partnerEmail: partnerEmail || null,
           partnerLevel: partnerLevel || null,
           userPhotoUrl: userPhotoUrl || null,
           partnerPhotoUrl: partnerPhotoUrl || null,
           tournamentCategory: settings.registrationMode === 'TOURNAMENT' ? tournamentCategory : null,
           playingMixedDoubles: settings.registrationMode === 'TOURNAMENT' ? playingMixedDoubles : false,
           mixedPartnerName: mixedPartnerName || null,
-          mixedPartnerAge: typeof mixedPartnerAge === 'number' && !Number.isNaN(mixedPartnerAge) ? mixedPartnerAge : undefined,
+          mixedPartnerEmail: mixedPartnerEmail || null,
           mixedPartnerLevel: mixedPartnerLevel || null,
           mixedPartnerPhotoUrl: mixedPartnerPhotoUrl || null,
           paymentScreenshotUrl: fileUrl,

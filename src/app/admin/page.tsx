@@ -214,20 +214,72 @@ export default function AdminPage() {
     }
   };
 
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
     const doc = new jsPDF();
     
-    doc.text("B's Club Registrations", 14, 15);
+    let currentY = 15;
     
-    const tableColumn = ["Name", "Partner", "Phone", "Category", "Age", "Registered Before", "Level"];
+    try {
+      const logoImg = new Image();
+      logoImg.src = '/pdf-logo.png';
+      await new Promise((resolve, reject) => {
+        logoImg.onload = resolve;
+        logoImg.onerror = reject;
+      });
+      
+      let canvas = document.createElement('canvas');
+      canvas.width = logoImg.width;
+      canvas.height = logoImg.height;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(logoImg, 0, 0);
+        
+        // Auto-crop vertical transparency/whitespace
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        let top = 0, bottom = canvas.height;
+        for(let y = 0; y < canvas.height; y++) {
+          let empty = true;
+          for(let x = 0; x < canvas.width; x++) {
+            if(imgData[(y * canvas.width + x) * 4 + 3] > 10) { empty = false; break; } // check alpha
+          }
+          if(!empty) { top = Math.max(0, y - 5); break; }
+        }
+        for(let y = canvas.height - 1; y >= 0; y--) {
+          let empty = true;
+          for(let x = 0; x < canvas.width; x++) {
+            if(imgData[(y * canvas.width + x) * 4 + 3] > 10) { empty = false; break; }
+          }
+          if(!empty) { bottom = Math.min(canvas.height, y + 5); break; }
+        }
+        
+        const cropHeight = bottom - top;
+        const cropped = document.createElement('canvas');
+        cropped.width = canvas.width;
+        cropped.height = cropHeight;
+        cropped.getContext('2d')?.drawImage(canvas, 0, top, canvas.width, cropHeight, 0, 0, canvas.width, cropHeight);
+        
+        const dataUrl = cropped.toDataURL('image/png');
+        const ratio = cropped.height / cropped.width;
+        const width = 50;
+        const height = width * ratio;
+        const x = (210 - width) / 2;
+        
+        doc.addImage(dataUrl, 'PNG', x, 10, width, height);
+        currentY = 10 + height + 10;
+      }
+    } catch (e) {
+      console.error("Could not load logo", e);
+    }
+    
+    const tableColumn = limits.registrationMode === 'TOURNAMENT'
+      ? ["Name", "Partner", "Phone", "Category", "Email", "Registered Before", "Level"]
+      : ["Name", "Phone", "Category", "Email", "Registered Before", "Level"];
     
     if (limits.registrationMode === 'TOURNAMENT') {
       const mens = registrations.filter(r => r.tournamentCategory === "Men's Doubles");
       const womens = registrations.filter(r => r.tournamentCategory === "Women's Doubles");
       const mixed = registrations.filter(r => r.tournamentCategory === "Mixed Doubles" || r.playingMixedDoubles);
       
-      let currentY = 25;
-
       const drawTable = (list: any[], title: string, isMixed: boolean) => {
         if (list.length === 0) return;
         
@@ -243,7 +295,7 @@ export default function AdminPage() {
             pName || '-',
             r.phone,
             isMixed ? "Mixed Doubles" : (r.tournamentCategory || ''),
-            r.age || '',
+            r.email || '',
             r.registeredBefore || '',
             r.level || ''
           ];
@@ -267,10 +319,9 @@ export default function AdminPage() {
       registrations.forEach(r => {
         const rowData = [
           r.name,
-          r.partnerName || '-',
           r.phone,
           r.tournamentCategory || r.venue || r.gender || '',
-          r.age || '',
+          r.email || '',
           r.registeredBefore || '',
           r.level || ''
         ];
@@ -280,7 +331,7 @@ export default function AdminPage() {
       autoTable(doc, {
         head: [tableColumn],
         body: tableRows,
-        startY: 20,
+        startY: currentY + 5,
       });
     }
     
@@ -610,15 +661,15 @@ export default function AdminPage() {
                                 const useMixedDetails = isMixed && reg.playingMixedDoubles && reg.tournamentCategory !== "Mixed Doubles";
                                 
                                 const partnerName = useMixedDetails ? reg.mixedPartnerName : reg.partnerName;
-                                const partnerAge = useMixedDetails ? reg.mixedPartnerAge : reg.partnerAge;
+                                const partnerEmail = useMixedDetails ? reg.mixedPartnerEmail : reg.partnerEmail;
                                 const partnerLevel = useMixedDetails ? reg.mixedPartnerLevel : reg.partnerLevel;
                                 const partnerPhoto = useMixedDetails ? reg.mixedPartnerPhotoUrl : reg.partnerPhotoUrl;
 
                                 return (
                                   <tr key={reg.id}>
                                     <td style={{ fontWeight: 700 }}>{reg.registrationId}</td>
-                                    <td>{reg.name} ({reg.age})<br/><small style={{ color: '#718096' }}>{reg.level}</small><br/><small style={{ color: '#718096' }}>{reg.phone}</small></td>
-                                    <td>{partnerName ? <>{partnerName} ({partnerAge})<br/><small style={{ color: '#718096' }}>{partnerLevel}</small></> : '-'}</td>
+                                    <td>{reg.name} ({reg.email})<br/><small style={{ color: '#718096' }}>{reg.level}</small><br/><small style={{ color: '#718096' }}>{reg.phone}</small></td>
+                                    <td>{partnerName ? <>{partnerName} ({partnerEmail})<br/><small style={{ color: '#718096' }}>{partnerLevel}</small></> : '-'}</td>
                                     <td>
                                       <span className="badge" style={{ backgroundColor: '#fed7d7', color: '#822727' }}>
                                         {isMixed ? "Mixed Doubles" : reg.tournamentCategory}
@@ -668,7 +719,7 @@ export default function AdminPage() {
                     <tr>
                       <th>ID</th>
                       <th>Name</th>
-                      <th>Age</th>
+                      <th>Email</th>
                       <th>Level</th>
                       <th>Phone</th>
                       <th>Category</th>
@@ -685,7 +736,7 @@ export default function AdminPage() {
                         <tr key={reg.id}>
                           <td style={{ fontWeight: 700 }}>{reg.registrationId}</td>
                           <td>{reg.name}</td>
-                          <td>{reg.age ?? '-'}</td>
+                          <td>{reg.email ?? '-'}</td>
                           <td>{reg.level ?? '-'}</td>
                           <td>{reg.phone}</td>
                           <td>

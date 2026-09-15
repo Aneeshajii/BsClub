@@ -17,18 +17,18 @@ export default function RegistrationPage() {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    age: '',
+    email: '',
     registeredBefore: '',
     level: '',
     gender: '',
     venue: '',
     tournamentCategory: '',
     partnerName: '',
-    partnerAge: '',
+    partnerEmail: '',
     partnerLevel: '',
     playingMixedDoubles: false,
     mixedPartnerName: '',
-    mixedPartnerAge: '',
+    mixedPartnerEmail: '',
     mixedPartnerLevel: ''
   });
 
@@ -221,8 +221,8 @@ export default function RegistrationPage() {
         setError('Please fill all required fields and upload all required images.');
         return;
       }
-      if (!formData.age || Number.isNaN(Number(formData.age)) || !formData.partnerAge || Number.isNaN(Number(formData.partnerAge))) {
-        setError('Please provide valid ages for both players.');
+      if (!formData.email || !formData.partnerEmail) {
+        setError('Please provide email addresses for both players.');
         return;
       }
 
@@ -231,8 +231,8 @@ export default function RegistrationPage() {
           setError('Please fill all Mixed Doubles partner details and upload their image.');
           return;
         }
-        if (!formData.mixedPartnerAge || Number.isNaN(Number(formData.mixedPartnerAge))) {
-          setError('Please provide a valid age for your Mixed Doubles partner.');
+        if (!formData.mixedPartnerEmail) {
+          setError('Please provide an email address for your Mixed Doubles partner.');
           return;
         }
       }
@@ -241,8 +241,8 @@ export default function RegistrationPage() {
         setError('Please fill all fields and upload the payment screenshot.');
         return;
       }
-      if (!formData.age || Number.isNaN(Number(formData.age))) {
-        setError('Please provide a valid age.');
+      if (!formData.email) {
+        setError('Please provide a valid email.');
         return;
       }
     }
@@ -254,7 +254,7 @@ export default function RegistrationPage() {
       form.append('phone', formData.phone);
       if (formData.gender) form.append('gender', formData.gender);
       if (formData.venue) form.append('venue', formData.venue);
-      form.append('age', formData.age);
+      form.append('email', formData.email);
       form.append('registeredBefore', formData.registeredBefore);
       form.append('level', formData.level);
       form.append('screenshot', screenshot);
@@ -262,7 +262,7 @@ export default function RegistrationPage() {
       if (isTournament) {
         form.append('tournamentCategory', formData.tournamentCategory);
         form.append('partnerName', formData.partnerName);
-        form.append('partnerAge', formData.partnerAge);
+        form.append('partnerEmail', formData.partnerEmail);
         form.append('partnerLevel', formData.partnerLevel);
         if (userPhoto) form.append('userPhoto', userPhoto);
         if (partnerPhoto) form.append('partnerPhoto', partnerPhoto);
@@ -270,7 +270,7 @@ export default function RegistrationPage() {
         form.append('playingMixedDoubles', formData.playingMixedDoubles.toString());
         if (formData.playingMixedDoubles) {
           form.append('mixedPartnerName', formData.mixedPartnerName);
-          form.append('mixedPartnerAge', formData.mixedPartnerAge);
+          form.append('mixedPartnerEmail', formData.mixedPartnerEmail);
           form.append('mixedPartnerLevel', formData.mixedPartnerLevel);
           if (mixedPartnerPhoto) form.append('mixedPartnerPhoto', mixedPartnerPhoto);
         }
@@ -380,16 +380,15 @@ export default function RegistrationPage() {
             </div>
 
             <div className="form-group">
-              <label>Age</label>
+              <label>Email Address</label>
               <input
-                type="number"
-                name="age"
+                type="email"
+                name="email"
                 className="form-control"
-                placeholder="Enter your age"
-                value={formData.age}
+                placeholder="Enter your email address"
+                value={formData.email}
                 onChange={handleChange}
                 disabled={submitting}
-                min={1}
               />
             </div>
 
@@ -537,16 +536,15 @@ export default function RegistrationPage() {
                 </div>
 
                 <div className="form-group">
-                  <label>Partner's Age</label>
+                  <label>Partner's Email</label>
                   <input
-                    type="number"
-                    name="partnerAge"
+                    type="email"
+                    name="partnerEmail"
                     className="form-control"
-                    placeholder="Enter partner's age"
-                    value={formData.partnerAge}
+                    placeholder="Enter partner's email address"
+                    value={formData.partnerEmail}
                     onChange={handleChange}
                     disabled={submitting}
-                    min={1}
                   />
                 </div>
 
@@ -602,16 +600,15 @@ export default function RegistrationPage() {
                         </div>
 
                         <div className="form-group">
-                          <label>Mixed Doubles Partner's Age</label>
+                          <label>Mixed Doubles Partner's Email</label>
                           <input
-                            type="number"
-                            name="mixedPartnerAge"
+                            type="email"
+                            name="mixedPartnerEmail"
                             className="form-control"
-                            placeholder="Enter mixed partner's age"
-                            value={formData.mixedPartnerAge}
+                            placeholder="Enter mixed partner's email"
+                            value={formData.mixedPartnerEmail}
                             onChange={handleChange}
                             disabled={submitting}
-                            min={1}
                           />
                         </div>
 

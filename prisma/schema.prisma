@@ -14,19 +14,19 @@ model Registration {
   phone                String
   gender               String?  // "Male" or "Female" (Optional now)
   venue                String?  // e.g. "Venue 1" or "Venue 2"
-  age                  Int?
+  email                String?
   registeredBefore     String?
   level                String?
   // Tournament Fields
   partnerName          String?
-  partnerAge           Int?
+  partnerEmail         String?
   partnerLevel         String?
   userPhotoUrl         String?
   partnerPhotoUrl      String?
   tournamentCategory   String? // e.g. "Men's Doubles", "Women's Doubles", "Mixed Doubles"
   playingMixedDoubles  Boolean @default(false)
   mixedPartnerName     String?
-  mixedPartnerAge      Int?
+  mixedPartnerEmail    String?
   mixedPartnerLevel    String?
   mixedPartnerPhotoUrl String?
   // Payment
