@@ -19,7 +19,11 @@
 
 body {
   font-family: var(--font-family);
-  background-color: var(--bg-color);
+  background-color: #050505;
+  background-image: url('/bg-pattern.png');
+  background-repeat: repeat;
+  background-size: 800px; /* or auto, setting a fixed size prevents blurriness */
+  background-attachment: fixed;
   color: var(--text-dark);
   line-height: 1.6;
   min-height: 100vh;

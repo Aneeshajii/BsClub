@@ -272,8 +272,8 @@ export default function AdminPage() {
     }
     
     const tableColumn = limits.registrationMode === 'TOURNAMENT'
-      ? ["Name", "Partner", "Phone", "Category", "Email", "Registered Before", "Level"]
-      : ["Name", "Phone", "Category", "Email", "Registered Before", "Level"];
+      ? ["Name", "Age", "Partner", "P. Age", "Phone", "Category", "Email", "Registered Before", "Level"]
+      : ["Name", "Age", "Phone", "Category", "Email", "Registered Before", "Level"];
     
     if (limits.registrationMode === 'TOURNAMENT') {
       const mens = registrations.filter(r => r.tournamentCategory === "Men's Doubles");
@@ -289,10 +289,13 @@ export default function AdminPage() {
         const rows = list.map(r => {
           const useMixedDetails = isMixed && r.playingMixedDoubles && r.tournamentCategory !== "Mixed Doubles";
           const pName = useMixedDetails ? r.mixedPartnerName : r.partnerName;
+          const pAge = useMixedDetails ? r.mixedPartnerAge : r.partnerAge;
           
           return [
             r.name,
+            r.age?.toString() || '-',
             pName || '-',
+            pAge?.toString() || '-',
             r.phone,
             isMixed ? "Mixed Doubles" : (r.tournamentCategory || ''),
             r.email || '',
@@ -319,6 +322,7 @@ export default function AdminPage() {
       registrations.forEach(r => {
         const rowData = [
           r.name,
+          r.age?.toString() || '-',
           r.phone,
           r.tournamentCategory || r.venue || r.gender || '',
           r.email || '',
@@ -668,8 +672,8 @@ export default function AdminPage() {
                                 return (
                                   <tr key={reg.id}>
                                     <td style={{ fontWeight: 700 }}>{reg.registrationId}</td>
-                                    <td>{reg.name} ({reg.email})<br/><small style={{ color: '#718096' }}>{reg.level}</small><br/><small style={{ color: '#718096' }}>{reg.phone}</small></td>
-                                    <td>{partnerName ? <>{partnerName} ({partnerEmail})<br/><small style={{ color: '#718096' }}>{partnerLevel}</small></> : '-'}</td>
+                                    <td>{reg.name} (Age: {reg.age || '-'})<br/><small style={{ color: '#718096' }}>{reg.email}</small><br/><small style={{ color: '#718096' }}>{reg.level}</small><br/><small style={{ color: '#718096' }}>{reg.phone}</small></td>
+                                    <td>{partnerName ? <>{partnerName} (Age: {useMixedDetails ? reg.mixedPartnerAge : reg.partnerAge || '-'})<br/><small style={{ color: '#718096' }}>{partnerEmail}</small><br/><small style={{ color: '#718096' }}>{partnerLevel}</small></> : '-'}</td>
                                     <td>
                                       <span className="badge" style={{ backgroundColor: '#fed7d7', color: '#822727' }}>
                                         {isMixed ? "Mixed Doubles" : reg.tournamentCategory}
@@ -735,7 +739,7 @@ export default function AdminPage() {
                       registrations.map(reg => (
                         <tr key={reg.id}>
                           <td style={{ fontWeight: 700 }}>{reg.registrationId}</td>
-                          <td>{reg.name}</td>
+                          <td>{reg.name} (Age: {reg.age || '-'})</td>
                           <td>{reg.email ?? '-'}</td>
                           <td>{reg.level ?? '-'}</td>
                           <td>{reg.phone}</td>

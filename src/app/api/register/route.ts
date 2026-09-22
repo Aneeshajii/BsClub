@@ -28,6 +28,12 @@ export async function POST(req: NextRequest) {
     const mixedPartnerEmail = formData.get('mixedPartnerEmail') as string | null;
     const mixedPartnerLevel = formData.get('mixedPartnerLevel') as string | null;
     const mixedPartnerPhoto = formData.get('mixedPartnerPhoto') as File | null;
+    
+    // Parse ages
+    const age = formData.get('age') ? parseInt(formData.get('age') as string) : null;
+    const partnerAge = formData.get('partnerAge') ? parseInt(formData.get('partnerAge') as string) : null;
+    const mixedPartnerAge = formData.get('mixedPartnerAge') ? parseInt(formData.get('mixedPartnerAge') as string) : null;
+
     if (!name || !phone || !screenshot) {
       return NextResponse.json({ error: 'Name, phone, and payment screenshot are required' }, { status: 400 });
     }
@@ -156,8 +162,10 @@ export async function POST(req: NextRequest) {
           registeredBefore: registeredBefore || null,
           level: level || null,
           email: email || null,
+          age,
           partnerName: partnerName || null,
           partnerEmail: partnerEmail || null,
+          partnerAge,
           partnerLevel: partnerLevel || null,
           userPhotoUrl: userPhotoUrl || null,
           partnerPhotoUrl: partnerPhotoUrl || null,
@@ -165,6 +173,7 @@ export async function POST(req: NextRequest) {
           playingMixedDoubles: settings.registrationMode === 'TOURNAMENT' ? playingMixedDoubles : false,
           mixedPartnerName: mixedPartnerName || null,
           mixedPartnerEmail: mixedPartnerEmail || null,
+          mixedPartnerAge,
           mixedPartnerLevel: mixedPartnerLevel || null,
           mixedPartnerPhotoUrl: mixedPartnerPhotoUrl || null,
           paymentScreenshotUrl: fileUrl,

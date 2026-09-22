@@ -18,6 +18,7 @@ export default function RegistrationPage() {
     name: '',
     phone: '',
     email: '',
+    age: '',
     registeredBefore: '',
     level: '',
     gender: '',
@@ -25,10 +26,12 @@ export default function RegistrationPage() {
     tournamentCategory: '',
     partnerName: '',
     partnerEmail: '',
+    partnerAge: '',
     partnerLevel: '',
     playingMixedDoubles: false,
     mixedPartnerName: '',
     mixedPartnerEmail: '',
+    mixedPartnerAge: '',
     mixedPartnerLevel: ''
   });
 
@@ -271,6 +274,7 @@ export default function RegistrationPage() {
         if (formData.playingMixedDoubles) {
           form.append('mixedPartnerName', formData.mixedPartnerName);
           form.append('mixedPartnerEmail', formData.mixedPartnerEmail);
+          if (formData.mixedPartnerAge) form.append('mixedPartnerAge', formData.mixedPartnerAge);
           form.append('mixedPartnerLevel', formData.mixedPartnerLevel);
           if (mixedPartnerPhoto) form.append('mixedPartnerPhoto', mixedPartnerPhoto);
         }
@@ -325,8 +329,10 @@ export default function RegistrationPage() {
 
   return (
     <div className="container animate-fade-in">
-      <h1 className="title-3d">the B'S <span className="dark">CLUB</span></h1>
-      <h3 style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--text-light)', letterSpacing: '2px', fontWeight: 700 }}>FOR BADMINTON BUDDIES</h3>
+      <div style={{ textAlign: 'center', marginBottom: '1.5rem', marginTop: '1rem' }}>
+        <img src="/form-logo.png" alt="B's Club Logo" style={{ maxWidth: '100%', height: 'auto', maxHeight: '150px', objectFit: 'contain' }} />
+      </div>
+
 
       {status?.settings?.announcementEnabled && status?.settings?.announcementTitle && (
         <div className="premium-card animate-fade-in" style={{ marginBottom: '2rem', border: '1px solid rgba(159, 122, 234, 0.3)', borderLeft: '4px solid var(--primary)', padding: '1.5rem', backgroundColor: '#faf5ff', boxShadow: '0 4px 6px rgba(159, 122, 234, 0.1)' }}>
@@ -387,6 +393,19 @@ export default function RegistrationPage() {
                 className="form-control"
                 placeholder="Enter your email address"
                 value={formData.email}
+                onChange={handleChange}
+                disabled={submitting}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Age</label>
+              <input 
+                type="number" 
+                name="age" 
+                className="form-control" 
+                placeholder="Enter your age" 
+                value={formData.age} 
                 onChange={handleChange}
                 disabled={submitting}
               />
@@ -549,6 +568,19 @@ export default function RegistrationPage() {
                 </div>
 
                 <div className="form-group">
+                  <label>Partner's Age</label>
+                  <input 
+                    type="number" 
+                    name="partnerAge" 
+                    className="form-control" 
+                    placeholder="Enter partner's age" 
+                    value={formData.partnerAge} 
+                    onChange={handleChange}
+                    disabled={submitting}
+                  />
+                </div>
+
+                <div className="form-group">
                   <label>Partner's Level</label>
                   <select 
                     name="partnerLevel" 
@@ -607,6 +639,19 @@ export default function RegistrationPage() {
                             className="form-control"
                             placeholder="Enter mixed partner's email"
                             value={formData.mixedPartnerEmail}
+                            onChange={handleChange}
+                            disabled={submitting}
+                          />
+                        </div>
+
+                        <div className="form-group">
+                          <label>Mixed Doubles Partner's Age</label>
+                          <input 
+                            type="number" 
+                            name="mixedPartnerAge" 
+                            className="form-control" 
+                            placeholder="Enter mixed partner's age" 
+                            value={formData.mixedPartnerAge} 
                             onChange={handleChange}
                             disabled={submitting}
                           />
