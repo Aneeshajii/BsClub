@@ -330,7 +330,7 @@ export default function RegistrationPage() {
   return (
     <div className="container animate-fade-in">
       <div style={{ textAlign: 'center', marginBottom: '1.5rem', marginTop: '1rem' }}>
-        <img src="/form-logo.png" alt="B's Club Logo" style={{ maxWidth: '100%', height: 'auto', maxHeight: '150px', objectFit: 'contain' }} />
+        <img src="/form-logo-v6.png" alt="B's Club Logo" style={{ maxWidth: '100%', height: 'auto', maxHeight: '150px', objectFit: 'contain' }} />
       </div>
 
 
