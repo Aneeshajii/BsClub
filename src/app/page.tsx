@@ -335,11 +335,11 @@ export default function RegistrationPage() {
 
 
       {status?.settings?.announcementEnabled && status?.settings?.announcementTitle && (
-        <div className="premium-card animate-fade-in" style={{ marginBottom: '2rem', border: '1px solid rgba(159, 122, 234, 0.3)', borderLeft: '4px solid var(--primary)', padding: '1.5rem', backgroundColor: '#faf5ff', boxShadow: '0 4px 6px rgba(159, 122, 234, 0.1)' }}>
-          <h3 style={{ color: 'var(--primary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="premium-card animate-fade-in" style={{ marginBottom: '2rem', border: '1px solid rgba(208, 140, 252, 0.3)', borderLeft: '4px solid #d08cfc', padding: '1.5rem', backgroundColor: 'transparent' }}>
+          <h3 style={{ color: '#d08cfc', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ fontSize: '1.2rem' }}>📢</span> {status.settings.announcementTitle}
           </h3>
-          <p style={{ color: 'var(--text-dark)', whiteSpace: 'pre-line', lineHeight: 1.6, fontSize: '1.05rem' }}>
+          <p style={{ color: '#fff', whiteSpace: 'pre-line', lineHeight: 1.6, fontSize: '1.05rem' }}>
             {status.settings.announcementMessage}
           </p>
         </div>
@@ -347,13 +347,13 @@ export default function RegistrationPage() {
 
       <div className="premium-card">
         {isClosed ? (
-          <div className="animate-fade-in" style={{ textAlign: 'center', padding: '2rem 0' }}>
-            <h2 style={{ fontSize: '2.2rem', color: 'var(--text-dark)', marginBottom: '1.5rem', letterSpacing: '1px' }}>Registrations Closed</h2>
-            <p style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: '#4a5568' }}>Thank you for your interest in joining B's Club.</p>
-            <p style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: '#4a5568' }}>Unfortunately, registrations for this session have reached full capacity.</p>
-            <p style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: '#4a5568' }}>We truly appreciate your enthusiasm and look forward to welcoming you at one of our upcoming weekend sessions.</p>
-            <p style={{ fontSize: '1.2rem', marginBottom: '2rem', color: '#4a5568' }}>Please check back next week when registrations reopen.<br/><br/><strong>See you on court!</strong></p>
-            <button onClick={() => window.location.reload()} className="btn" style={{ maxWidth: '200px', margin: '0 auto' }}>Back to Home</button>
+          <div className="animate-fade-in" style={{ textAlign: 'center', padding: '1rem 0' }}>
+            <h2 style={{ fontSize: '3.2rem', color: '#d08cfc', marginBottom: '1.5rem', letterSpacing: '1px', fontWeight: 900, lineHeight: 1.1 }}>Registrations<br/>Closed</h2>
+            <p style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: '#fff', fontWeight: 500 }}>Thank you for your interest in joining<br/>B's Club.</p>
+            <p style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: '#fff', fontWeight: 500 }}>Unfortunately, registrations for this<br/>session have reached full capacity.</p>
+            <p style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: '#fff', fontWeight: 500 }}>We truly appreciate your<br/>enthusiasm and look forward to<br/>welcoming you at one of our<br/>upcoming weekend sessions.</p>
+            <p style={{ fontSize: '1.2rem', marginBottom: '2.5rem', color: '#fff', fontWeight: 500 }}>Please check back next week when<br/>registrations reopen.<br/><br/><strong style={{ fontSize: '1.4rem' }}>See you on court!</strong></p>
+            <button onClick={() => window.location.reload()} className="btn" style={{ maxWidth: '280px', margin: '0 auto', backgroundColor: '#1a0b2e', color: '#fff', border: '2px solid #5a308b', borderRadius: '15px', letterSpacing: '2px', fontWeight: 700 }}>BACK TO HOME</button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="animate-fade-in">
