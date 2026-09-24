@@ -308,7 +308,14 @@ export default function RegistrationPage() {
   if (loading) {
     return (
       <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <h2 className="title-3d">Loading...</h2>
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes pulse-opacity {
+            0% { opacity: 0.5; transform: scale(0.98); }
+            50% { opacity: 1; transform: scale(1.02); }
+            100% { opacity: 0.5; transform: scale(0.98); }
+          }
+        `}} />
+        <img src="/loading-logo.png" alt="Loading..." style={{ maxWidth: '250px', height: 'auto', animation: 'pulse-opacity 2s ease-in-out infinite' }} />
       </div>
     );
   }
