@@ -315,7 +315,19 @@ export default function RegistrationPage() {
             100% { opacity: 0.5; transform: scale(0.98); }
           }
         `}} />
-        <img src="/loading-logo.png" alt="Loading..." style={{ maxWidth: '250px', height: 'auto', animation: 'pulse-opacity 2s ease-in-out infinite' }} />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2rem', animation: 'pulse-opacity 2s ease-in-out infinite' }}>
+          <img src="/bs-club-only.png" alt="B's Club" style={{ maxWidth: '220px', height: 'auto' }} />
+          <div style={{ 
+            fontSize: '5rem', 
+            fontWeight: 900, 
+            lineHeight: 1,
+            background: 'linear-gradient(135deg, #d08cfc 0%, #f6ad55 100%)', 
+            WebkitBackgroundClip: 'text', 
+            WebkitTextFillColor: 'transparent',
+            fontFamily: 'sans-serif'
+          }}>X</div>
+          <img src="/hndrd-only.png" alt="HNDRD" style={{ maxWidth: '220px', height: 'auto' }} />
+        </div>
       </div>
     );
   }
