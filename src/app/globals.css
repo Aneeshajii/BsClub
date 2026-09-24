@@ -367,11 +367,18 @@ input[type="radio"] {
   animation: fadeIn 0.5s ease forwards;
 }
 
+.main-logo {
+  max-height: 150px;
+}
+
 @media (max-width: 600px) {
   .title-3d {
     font-size: 2.2rem;
   }
   .premium-card {
     padding: 1.5rem;
+  }
+  .main-logo {
+    max-height: 90px;
   }
 }
