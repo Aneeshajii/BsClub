@@ -102,6 +102,26 @@ h1, h2, h3, h4, h5, h6 {
   color: white;
 }
 
+.admin-input {
+  background: white !important;
+  color: var(--text-dark) !important;
+  border: 2px solid #e2e8f0 !important;
+}
+
+.admin-input::placeholder {
+  color: #a0aec0 !important;
+}
+
+.admin-input:focus {
+  border-color: var(--text-dark) !important;
+  box-shadow: 0 0 0 3px rgba(45, 16, 85, 0.1) !important;
+}
+
+.admin-input option {
+  background-color: white !important;
+  color: var(--text-dark) !important;
+}
+
 .radio-group {
   display: flex;
   gap: 1rem;

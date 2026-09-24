@@ -352,7 +352,7 @@ export default function AdminPage() {
               <label>Password</label>
               <input 
                 type="password" 
-                className="form-control" 
+                className="form-control admin-input" 
                 value={password}
                 onChange={e => setPassword(e.target.value)}
               />
@@ -443,7 +443,7 @@ export default function AdminPage() {
                 <label>Announcement Title</label>
                 <input 
                   type="text" 
-                  className="form-control" 
+                  className="form-control admin-input" 
                   value={limits.announcementTitle}
                   onChange={e => setLimits({...limits, announcementTitle: e.target.value})}
                   placeholder="e.g. 📢 Important Update"
@@ -452,7 +452,7 @@ export default function AdminPage() {
               <div className="form-group">
                 <label>Announcement Message</label>
                 <textarea 
-                  className="form-control" 
+                  className="form-control admin-input" 
                   value={limits.announcementMessage}
                   onChange={e => setLimits({...limits, announcementMessage: e.target.value})}
                   rows={4}
@@ -479,7 +479,7 @@ export default function AdminPage() {
               <div className="form-group">
                 <label>Registration Mode</label>
                 <select 
-                  className="form-control" 
+                  className="form-control admin-input" 
                   value={limits.registrationMode} 
                   onChange={e => setLimits({...limits, registrationMode: e.target.value})}
                 >
@@ -495,7 +495,7 @@ export default function AdminPage() {
                     <label>Max Male Registrations</label>
                     <input 
                       type="number" 
-                      className="form-control" 
+                      className="form-control admin-input" 
                       value={limits.maxMale}
                       onChange={e => setLimits({...limits, maxMale: parseInt(e.target.value) || 0})}
                     />
@@ -504,7 +504,7 @@ export default function AdminPage() {
                     <label>Max Female Registrations</label>
                     <input 
                       type="number" 
-                      className="form-control" 
+                      className="form-control admin-input" 
                       value={limits.maxFemale}
                       onChange={e => setLimits({...limits, maxFemale: parseInt(e.target.value) || 0})}
                     />
@@ -516,7 +516,7 @@ export default function AdminPage() {
                     <label>Venue 1 Name</label>
                     <input 
                       type="text" 
-                      className="form-control" 
+                      className="form-control admin-input" 
                       value={limits.venue1Name}
                       onChange={e => setLimits({...limits, venue1Name: e.target.value})}
                     />
@@ -525,7 +525,7 @@ export default function AdminPage() {
                     <label>Venue 1 Max Male</label>
                     <input 
                       type="number" 
-                      className="form-control" 
+                      className="form-control admin-input" 
                       value={limits.venue1MaxMale}
                       onChange={e => setLimits({...limits, venue1MaxMale: parseInt(e.target.value) || 0})}
                     />
@@ -534,7 +534,7 @@ export default function AdminPage() {
                     <label>Venue 1 Max Female</label>
                     <input 
                       type="number" 
-                      className="form-control" 
+                      className="form-control admin-input" 
                       value={limits.venue1MaxFemale}
                       onChange={e => setLimits({...limits, venue1MaxFemale: parseInt(e.target.value) || 0})}
                     />
@@ -543,7 +543,7 @@ export default function AdminPage() {
                     <label>Venue 2 Name</label>
                     <input 
                       type="text" 
-                      className="form-control" 
+                      className="form-control admin-input" 
                       value={limits.venue2Name}
                       onChange={e => setLimits({...limits, venue2Name: e.target.value})}
                     />
@@ -552,7 +552,7 @@ export default function AdminPage() {
                     <label>Venue 2 Max Male</label>
                     <input 
                       type="number" 
-                      className="form-control" 
+                      className="form-control admin-input" 
                       value={limits.venue2MaxMale}
                       onChange={e => setLimits({...limits, venue2MaxMale: parseInt(e.target.value) || 0})}
                     />
@@ -561,7 +561,7 @@ export default function AdminPage() {
                     <label>Venue 2 Max Female</label>
                     <input 
                       type="number" 
-                      className="form-control" 
+                      className="form-control admin-input" 
                       value={limits.venue2MaxFemale}
                       onChange={e => setLimits({...limits, venue2MaxFemale: parseInt(e.target.value) || 0})}
                     />
@@ -573,7 +573,7 @@ export default function AdminPage() {
                     <label>Men's Doubles Limit</label>
                     <input 
                       type="number" 
-                      className="form-control" 
+                      className="form-control admin-input" 
                       value={limits.mensDoublesMax}
                       onChange={e => setLimits({...limits, mensDoublesMax: parseInt(e.target.value) || 0})}
                     />
@@ -582,7 +582,7 @@ export default function AdminPage() {
                     <label>Women's Doubles Limit</label>
                     <input 
                       type="number" 
-                      className="form-control" 
+                      className="form-control admin-input" 
                       value={limits.womensDoublesMax}
                       onChange={e => setLimits({...limits, womensDoublesMax: parseInt(e.target.value) || 0})}
                     />
@@ -591,7 +591,7 @@ export default function AdminPage() {
                     <label>Mixed Doubles Limit</label>
                     <input 
                       type="number" 
-                      className="form-control" 
+                      className="form-control admin-input" 
                       value={limits.mixedDoublesMax}
                       onChange={e => setLimits({...limits, mixedDoublesMax: parseInt(e.target.value) || 0})}
                     />
@@ -613,7 +613,7 @@ export default function AdminPage() {
                 <input 
                   type="file" 
                   accept="image/*"
-                  className="form-control"
+                  className="form-control admin-input"
                   onChange={(e) => setQrImageFile(e.target.files?.[0] || null)}
                 />
                 {limits.qrCodeImageUrl ? (

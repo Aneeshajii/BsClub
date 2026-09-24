@@ -258,6 +258,7 @@ export default function RegistrationPage() {
       if (formData.gender) form.append('gender', formData.gender);
       if (formData.venue) form.append('venue', formData.venue);
       form.append('email', formData.email);
+      if (formData.age) form.append('age', formData.age);
       form.append('registeredBefore', formData.registeredBefore);
       form.append('level', formData.level);
       form.append('screenshot', screenshot);
@@ -266,6 +267,7 @@ export default function RegistrationPage() {
         form.append('tournamentCategory', formData.tournamentCategory);
         form.append('partnerName', formData.partnerName);
         form.append('partnerEmail', formData.partnerEmail);
+        if (formData.partnerAge) form.append('partnerAge', formData.partnerAge);
         form.append('partnerLevel', formData.partnerLevel);
         if (userPhoto) form.append('userPhoto', userPhoto);
         if (partnerPhoto) form.append('partnerPhoto', partnerPhoto);
